@@ -725,6 +725,7 @@
       <label>Mot de passe</label>
       <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
     </div>
+
     <button class="login-btn" id="loginBtn">Se connecter</button>
     <div class="login-error" id="loginError">⚠️ Mot de passe incorrect. Réessayez.</div>
   </div>
@@ -1348,10 +1349,13 @@ function updateSummary() {
 /* ══════════════════════════════════════════════
    AUTH
 ══════════════════════════════════════════════ */
+const GEMINI_API_KEY_HARDCODED = 'AQ.Ab8RN6K634o3dXLpnlH1A4dKcNvEYELhmrXF0lCztmY81oOJXg';
+
 function doLogin() {
-  const pwd = document.getElementById('loginPassword').value;
-  const err = document.getElementById('loginError');
+  const pwd    = document.getElementById('loginPassword').value;
+  const err    = document.getElementById('loginError');
   if (pwd === CORRECT_PASSWORD) {
+    window.GEMINI_API_KEY = GEMINI_API_KEY_HARDCODED;
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').classList.add('show');
     addMatchCard('Manchester Red', 'Sunderland', '07:00', 8, 19,
@@ -1368,11 +1372,13 @@ document.getElementById('loginPassword').addEventListener('keypress', e => {
   if (e.key === 'Enter') doLogin();
 });
 
+
 document.getElementById('logoutBtn').addEventListener('click', () => {
   document.getElementById('mainApp').classList.remove('show');
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('loginPassword').value = '';
   document.getElementById('loginError').classList.remove('show');
+  window.GEMINI_API_KEY = GEMINI_API_KEY_HARDCODED;
   document.getElementById('matchesWrapper').innerHTML = '';
   document.getElementById('summaryPanel').classList.remove('show');
   document.getElementById('summaryRows').innerHTML = '';
@@ -1438,10 +1444,13 @@ async function runScan(id) {
   if (sf.rank) document.getElementById(`scanBoxRank_${id}`).classList.add('scanning');
 
   try {
-    const contentParts = [];
+    // Vérifier la clé API
+    const apiKey = window.GEMINI_API_KEY || '';
+    if (!apiKey) {
+      throw new Error('Clé API Gemini manquante. Déconnectez-vous et entrez votre clé API.');
+    }
 
-    // Construire le prompt selon les images disponibles
-    let promptText = `Tu analyses des captures d'écran de l'appli de paris sportifs Bet261 (version afrique/CAN virtuelle).
+    const promptText = `Tu analyses des captures d'écran de l'appli de paris sportifs Bet261 (version afrique/CAN virtuelle).
 Réponds UNIQUEMENT en JSON valide, rien d'autre, sans backticks.
 
 Format de réponse attendu:
@@ -1467,37 +1476,40 @@ Instructions:
 - Normalise les noms d'équipes en français (ex: "DR Congo" → "RD Congo", "Ivory Coast" → "Côte d'Ivoire", "Egypt" → "Égypte", "Algeria" → "Algérie").
 - Ne rajoute AUCUN texte autour du JSON.`;
 
-    contentParts.push({ type: 'text', text: promptText });
+    // Construire les parts pour Gemini
+    const geminiParts = [{ text: promptText }];
 
     if (sf.odds) {
       const b64 = await fileToBase64(sf.odds);
-      contentParts.push({
-        type: 'image',
-        source: { type: 'base64', media_type: sf.odds.type || 'image/jpeg', data: b64 }
-      });
-      contentParts.push({ type: 'text', text: 'Image ci-dessus: capture des COTES 1X2 des matchs.' });
+      geminiParts.push({ inline_data: { mime_type: sf.odds.type || 'image/jpeg', data: b64 } });
+      geminiParts.push({ text: 'Image ci-dessus: capture des COTES 1X2 des matchs.' });
     }
     if (sf.rank) {
       const b64 = await fileToBase64(sf.rank);
-      contentParts.push({
-        type: 'image',
-        source: { type: 'base64', media_type: sf.rank.type || 'image/jpeg', data: b64 }
-      });
-      contentParts.push({ type: 'text', text: 'Image ci-dessus: capture du CLASSEMENT des équipes.' });
+      geminiParts.push({ inline_data: { mime_type: sf.rank.type || 'image/jpeg', data: b64 } });
+      geminiParts.push({ text: 'Image ci-dessus: capture du CLASSEMENT des équipes.' });
     }
 
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: contentParts }]
-      })
-    });
+    const resp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: geminiParts }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 1500 }
+        })
+      }
+    );
 
     const data = await resp.json();
-    const raw  = data.content.map(i => i.text || '').join('');
+
+    if (!resp.ok) {
+      const errMsg = data.error?.message || JSON.stringify(data);
+      throw new Error(`Erreur API Gemini (${resp.status}): ${errMsg}`);
+    }
+
+    const raw   = data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
     const clean = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(clean);
 
@@ -1521,7 +1533,16 @@ Instructions:
   } catch (err) {
     console.error(err);
     status.className = 'scan-status show error';
-    status.textContent = '❌ Erreur lors de l\'analyse. Vérifiez la qualité des captures.';
+    const msg = err.message || '';
+    if (msg.includes('manquante') || msg.includes('Déconnectez')) {
+      status.textContent = '❌ ' + msg;
+    } else if (msg.includes('400') || msg.includes('API_KEY_INVALID')) {
+      status.textContent = '❌ Clé API invalide. Vérifiez votre clé Gemini sur aistudio.google.com';
+    } else if (msg.includes('429')) {
+      status.textContent = '❌ Quota dépassé. Réessayez dans 1 minute.';
+    } else {
+      status.textContent = '❌ Erreur : ' + msg;
+    }
   } finally {
     btn.disabled = false;
     btn.innerHTML = '🔍 Analyser les captures avec l\'IA';
