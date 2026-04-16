@@ -410,7 +410,7 @@
     <div id="resultsCards"></div>
   </div>
 
-  <footer>Boom — Stratégie de paris sportifs virtuels</footer>
+  <footer>Boom — Stratégie de paris sportifs virtuels by Azard </footer>
 
 </div>
 
@@ -432,6 +432,7 @@ function buildTeamOptions(selected) {
   ).join('');
 }
 
+
 let matchCount = 0;
 
 function addMatchCard(teamA='', teamB='', time='07:00') {
@@ -449,16 +450,35 @@ function addMatchCard(teamA='', teamB='', time='07:00') {
       <label>🕐 Heure</label>
       <input type="time" class="match-time" value="${time}">
     </div>
+
+    <div class="teams-row">1X2</div>
+    
     <div class="teams-row">
       <div class="team-col">
         <label>Équipe 1</label>
         <select class="teamA">${buildTeamOptions(teamA)}</select>
+        
       </div>
       <div class="team-col">
         <label>Équipe 2</label>
         <select class="teamB">${buildTeamOptions(teamB)}</select>
       </div>
     </div>
+
+    <div class="teams-row">Classement</div>
+
+    <div class="teams-row">
+      <div class="team-col">
+        <label>Équipe 1</label>
+        <select class="teamA">${buildTeamOptions(teamA)}</select>
+        
+      </div>
+      <div class="team-col">
+        <label>Équipe 2</label>
+        <select class="teamB">${buildTeamOptions(teamB)}</select>
+      </div>
+    </div>
+
     <div class="odds-row">
       <div class="odd-box">
         <label>Cote 1</label>
@@ -498,6 +518,7 @@ function analyzeMatch(card) {
   const teamA = card.querySelector('.teamA').value;
   const teamB = card.querySelector('.teamB').value;
   const time  = card.querySelector('.match-time').value;
+
   if (isNaN(coteA) || isNaN(coteB) || coteA <= 1 || coteB <= 1) return null;
   const coteFav = Math.min(coteA, coteB);
   let outcome, score, total;

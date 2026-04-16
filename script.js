@@ -1,138 +1,174 @@
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // Éléments du Bankroll
-    const bankrollInp = document.getElementById('bankroll');
-    const safeBetEl = document.getElementById('safeBet');
-    const maxBetEl = document.getElementById('maxBet');
+const CORRECT_PASSWORD = 'boom261#';
 
-    // Éléments de l'Analyse
-    const coteAInp = document.getElementById('coteA');
-    const coteBInp = document.getElementById('coteB');
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const errorMsg = document.getElementById('errorMsg');
+let matchCount = 0;
 
-    // Éléments des Résultats
-    const resultsSection = document.getElementById('resultsSection');
-    const resFavori = document.getElementById('resFavori');
-    const resPari = document.getElementById('resPari');
-    const resScore = document.getElementById('resScore');
-    const cardSecurity = document.getElementById('cardSecurity');
+function getReliability(coteFav) {
+  if (coteFav < 1.5) return { stars: '★★★★★', label: 'Très fort' };
+  if (coteFav < 1.9) return { stars: '★★★★☆', label: 'Fort' };
+  if (coteFav < 2.3) return { stars: '★★★☆☆', label: 'Moyen' };
+  return { stars: '★★☆☆☆', label: 'Risqué' };
+}
 
-    // Formateur de devise
-    const formatter = new Intl.NumberFormat('fr-FR');
+function analyzeMatch(card) {
+  const coteA = parseFloat(card.querySelector('.coteA').value);
+  const coteB = parseFloat(card.querySelector('.coteB').value);
 
-    // 1. Logique Bankroll
-    function updateBankroll() {
-        const capital = parseFloat(bankrollInp.value);
-        if(isNaN(capital) || capital <= 0) {
-            safeBetEl.textContent = "0";
-            maxBetEl.textContent = "0";
-            return;
-        }
+  const teamA = card.querySelector('.teamA').value;
+  const teamB = card.querySelector('.teamB').value;
+  const time = card.querySelector('.match-time').value;
 
-        const safeBet = capital * 0.05; // 5%
-        const maxBet = capital * 0.10;  // 10%
+  if (isNaN(coteA) || isNaN(coteB)) return null;
 
-        safeBetEl.textContent = formatter.format(safeBet);
-        maxBetEl.textContent = formatter.format(maxBet);
-    }
+  const coteFav = Math.min(coteA, coteB);
 
-    bankrollInp.addEventListener('input', updateBankroll);
+  let outcome, score, total;
 
-    // 2. Algorithme d'analyse de match
-    function analyzeMatch() {
-        const coteA = parseFloat(coteAInp.value);
-        const coteB = parseFloat(coteBInp.value);
+  if (coteFav < 1.50) {
+    outcome = coteA < coteB ? '1' : '2';
+    score = '2-0';
+    total = 2;
+  } 
+  else if (coteFav <= 2.20) {
+    outcome = coteA < coteB ? '1' : '2';
+    score = '2-1';
+    total = 3;
+  } 
+  else {
+    outcome = 'X';
+    score = '2-2';
+    total = 4;
+  }
 
-        if(isNaN(coteA) || isNaN(coteB) || coteA <= 1 || coteB <= 1) {
-            errorMsg.classList.remove('hidden');
-            resultsSection.classList.add('hidden');
-            return;
-        }
+  return {
+    teamA,
+    teamB,
+    time,
+    outcome,
+    score,
+    total,
+    rel: getReliability(coteFav)
+  };
+}
 
-        errorMsg.classList.add('hidden');
+/* ─── ANALYSE BUTTON ─── */
+document.getElementById('analyzeBtn').addEventListener('click', () => {
 
-        // Etape 1: Déterminer le favori
-        const teamASelect = document.getElementById('teamA');
-        const teamBSelect = document.getElementById('teamB');
-        let nomEquipeA = (teamASelect && teamASelect.value !== "") ? teamASelect.value : "Équipe A";
-        let nomEquipeB = (teamBSelect && teamBSelect.value !== "") ? teamBSelect.value : "Équipe B";
+  const cards = document.querySelectorAll('.match-card');
+  const errorEl = document.getElementById('errorMsg');
+  const resultsSection = document.getElementById('resultsSection');
+  const resultsCards = document.getElementById('resultsCards');
 
-        let favoriString = "";
-        let coteFavori = 0;
+  if (cards.length === 0) {
+    errorEl.textContent = '⚠️ Ajoutez au moins un match.';
+    errorEl.classList.add('show');
+    return;
+  }
 
-        if (coteA < coteB) {
-            favoriString = nomEquipeA;
-            coteFavori = coteA;
-        } else if (coteB < coteA) {
-            favoriString = nomEquipeB;
-            coteFavori = coteB;
-        } else {
-            favoriString = "Aucun (Égalité parfaite)";
-            coteFavori = coteA;
-        }
+  let html = '';
+  let hasError = false;
 
-        // Etape 2: Calculer la différence
-        const diff = Math.abs(coteA - coteB);
+  cards.forEach(card => {
+    const res = analyzeMatch(card);
+    if (!res) { hasError = true; return; }
 
-        // Etape 3: Prédiction
-        let scoreProbable = "";
-        let pariConseille = "";
+    html += `
+      <div class="result-card">
+        <div class="rc-header">
+          <div>
+            <span class="boost-badge">⭐ BOOST MODE</span>
+            <div class="rc-matchup">${res.teamA} vs ${res.teamB}</div>
+          </div>
+          <div class="rc-time">🕐 ${res.time}</div>
+        </div>
 
-        if (coteFavori < 1.50) {
-            scoreProbable = "2-0 ou 3-0";
-            pariConseille = "Over 1.5";
-        } else if (coteFavori >= 1.50 && coteFavori <= 2.20) {
-            scoreProbable = "2-1 ou 1-0";
-            pariConseille = "Over 2.5";
-        } else {
-            // > 2.20
-            scoreProbable = "2-2 ou 3-1";
-            pariConseille = "Over 3.5";
-        }
+        <div class="stats-row">
+          <div class="stat-box v1x2">
+            <div class="stat-label">1X2</div>
+            <div class="stat-value">${res.outcome}</div>
+          </div>
 
-        // MAJ DOM
-        resFavori.textContent = favoriString + " (" + coteFavori + ")";
-        resPari.textContent = pariConseille;
-        resScore.textContent = scoreProbable;
+          <div class="stat-box vscore">
+            <div class="stat-label">Score</div>
+            <div class="stat-value">${res.score}</div>
+          </div>
 
-        // Etape 4: Sécurité
-        if (diff < 0.30) {
-            cardSecurity.classList.remove('hidden');
-        } else {
-            cardSecurity.classList.add('hidden');
-        }
+          <div class="stat-box vtotal">
+            <div class="stat-label">Total</div>
+            <div class="stat-value">${res.total}</div>
+          </div>
+        </div>
 
-        // Afficher les résultats avec petit effet
-        resultsSection.classList.remove('hidden');
-        resultsSection.style.opacity = 0;
-        
-        setTimeout(() => {
-            resultsSection.style.transition = "opacity 0.5s ease-in-out";
-            resultsSection.style.opacity = 1;
-        }, 50);
+        <div class="reliability">
+          <span class="stars">${res.rel.stars}</span>
+          <span class="label">${res.rel.label}</span>
+        </div>
+      </div>
+    `;
+  });
 
-        // Scroll doux vers les résultats
-        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+  if (hasError) {
+    errorEl.textContent = '⚠️ Remplis toutes les cotes correctement.';
+    errorEl.classList.add('show');
+    return;
+  }
 
-    analyzeBtn.addEventListener('click', analyzeMatch);
-    
-    // Optionnel : Lancer au bouton "Entrée"
-    [coteAInp, coteBInp].forEach(input => {
-        input.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                analyzeMatch();
-            }
-        });
-    });
-
-    // Optionnel : Fausse action pour l'upload d'image
-    const screenshotBtn = document.getElementById('screenshotBtn');
-    screenshotBtn.addEventListener('change', function(e) {
-        if(e.target.files.length > 0) {
-            alert("Fonctionnalité d'extraction de données par image en cours de développement. Le fichier "+e.target.files[0].name+" a été reçu.");
-        }
-    });
-
+  errorEl.classList.remove('show');
+  resultsCards.innerHTML = html;
+  resultsSection.classList.add('show');
+  resultsSection.scrollIntoView({ behavior: 'smooth' });
 });
+
+/* ─── LOGIN ─── */
+document.getElementById('loginBtn').addEventListener('click', () => {
+  const pwd = document.getElementById('loginPassword').value;
+
+  if (pwd === CORRECT_PASSWORD) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').classList.add('show');
+    addMatchCard('Manchester City', 'Sunderland', '07:00');
+  } else {
+    document.getElementById('loginError').classList.add('show');
+  }
+});
+
+/* ─── ADD MATCH ─── */
+document.getElementById('addMatchBtn').addEventListener('click', () => {
+  addMatchCard();
+});
+
+/* ─── ADD MATCH CARD ─── */
+function addMatchCard(teamA='', teamB='', time='07:00') {
+  matchCount++;
+
+  const card = document.createElement('div');
+  card.className = 'match-card';
+  card.dataset.id = matchCount;
+
+  card.innerHTML = `
+    <div class="card-header">
+      <span class="match-label">Match ${matchCount}</span>
+    </div>
+
+    <div class="time-row">
+      <label>Heure</label>
+      <input type="time" class="match-time" value="${time}">
+    </div>
+
+    <div class="teams-row">
+      <select class="teamA">
+        <option>${teamA || "Team A"}</option>
+      </select>
+
+      <select class="teamB">
+        <option>${teamB || "Team B"}</option>
+      </select>
+    </div>
+
+    <div class="odds-row">
+      <input class="coteA" type="number" placeholder="Cote 1">
+      <input class="coteB" type="number" placeholder="Cote 2">
+    </div>
+  `;
+
+  document.getElementById('matchesWrapper').appendChild(card);
+}
