@@ -725,7 +725,11 @@
       <label>Mot de passe</label>
       <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
     </div>
-
+    <div class="login-field">
+      <label>🔑 Clé API Google Gemini (gratuit)</label>
+      <input type="password" id="loginApiKey" placeholder="AIza..." autocomplete="off">
+      <div style="font-size:0.65rem;color:#7b82a8;margin-top:0.3rem;">Obtenir gratuitement sur <strong style="color:#4fc3f7">aistudio.google.com</strong></div>
+    </div>
     <button class="login-btn" id="loginBtn">Se connecter</button>
     <div class="login-error" id="loginError">⚠️ Mot de passe incorrect. Réessayez.</div>
   </div>
@@ -1349,13 +1353,12 @@ function updateSummary() {
 /* ══════════════════════════════════════════════
    AUTH
 ══════════════════════════════════════════════ */
-const GEMINI_API_KEY_HARDCODED = 'AQ.Ab8RN6K634o3dXLpnlH1A4dKcNvEYELhmrXF0lCztmY81oOJXg';
-
 function doLogin() {
   const pwd    = document.getElementById('loginPassword').value;
+  const apiKey = document.getElementById('loginApiKey').value.trim();
   const err    = document.getElementById('loginError');
   if (pwd === CORRECT_PASSWORD) {
-    window.GEMINI_API_KEY = GEMINI_API_KEY_HARDCODED;
+    window.GEMINI_API_KEY = apiKey || '';
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('mainApp').classList.add('show');
     addMatchCard('Manchester Red', 'Sunderland', '07:00', 8, 19,
@@ -1371,14 +1374,15 @@ document.getElementById('loginBtn').addEventListener('click', doLogin);
 document.getElementById('loginPassword').addEventListener('keypress', e => {
   if (e.key === 'Enter') doLogin();
 });
-
+document.getElementById('loginApiKey').addEventListener('keypress', e => {
+  if (e.key === 'Enter') doLogin();
+});
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
   document.getElementById('mainApp').classList.remove('show');
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('loginPassword').value = '';
   document.getElementById('loginError').classList.remove('show');
-  window.GEMINI_API_KEY = GEMINI_API_KEY_HARDCODED;
   document.getElementById('matchesWrapper').innerHTML = '';
   document.getElementById('summaryPanel').classList.remove('show');
   document.getElementById('summaryRows').innerHTML = '';
