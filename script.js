@@ -53,14 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
         errorMsg.classList.add('hidden');
 
         // Etape 1: Déterminer le favori
+        const teamASelect = document.getElementById('teamA');
+        const teamBSelect = document.getElementById('teamB');
+        let nomEquipeA = (teamASelect && teamASelect.value !== "") ? teamASelect.value : "Équipe A";
+        let nomEquipeB = (teamBSelect && teamBSelect.value !== "") ? teamBSelect.value : "Équipe B";
+
         let favoriString = "";
         let coteFavori = 0;
 
         if (coteA < coteB) {
-            favoriString = "Équipe A";
+            favoriString = nomEquipeA;
             coteFavori = coteA;
         } else if (coteB < coteA) {
-            favoriString = "Équipe B";
+            favoriString = nomEquipeB;
             coteFavori = coteB;
         } else {
             favoriString = "Aucun (Égalité parfaite)";

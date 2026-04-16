@@ -1,125 +1,607 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analyseur de Paris Virtuels</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boom — Analyseur</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --card2: #22263a;
+    --border: #2e334d;
+    --green: #00e676;
+    --green-dim: #00c85c22;
+    --yellow: #ffd740;
+    --blue: #4fc3f7;
+    --text: #e8eaf6;
+    --muted: #7b82a8;
+    --red: #ff5252;
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ─── LOGIN ─── */
+  #loginScreen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem 1.5rem;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .login-logo {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--green);
+    letter-spacing: -1px;
+    margin-bottom: 0.3rem;
+  }
+  .login-sub {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 2.2rem;
+    text-align: center;
+  }
+  .login-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.8rem 1.5rem;
+    width: 100%;
+  }
+  .login-field { margin-bottom: 1rem; }
+  .login-field label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.4rem;
+  }
+  .login-field input {
+    width: 100%;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.65rem 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .login-field input:focus { border-color: var(--green); }
+  .login-btn {
+    width: 100%;
+    background: var(--green);
+    border: none;
+    border-radius: var(--radius);
+    color: #0f1117;
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 0.85rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    text-transform: uppercase;
+    transition: opacity .2s, transform .1s;
+  }
+  .login-btn:active { transform: scale(0.98); opacity: 0.9; }
+  .login-error {
+    background: #ff525222;
+    border: 1px solid var(--red);
+    color: var(--red);
+    border-radius: 10px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.8rem;
+    margin-top: 0.8rem;
+    display: none;
+    text-align: center;
+  }
+  .login-error.show { display: block; }
+
+  /* ─── MAIN APP ─── */
+  #mainApp {
+    display: none;
+    padding: 1.2rem 1rem 3rem;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  #mainApp.show { display: block; }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.4rem;
+  }
+  header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--green);
+  }
+  .header-right { display: flex; align-items: center; gap: 0.6rem; }
+  .badge-pill {
+    font-size: 0.72rem;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.3rem 0.8rem;
+  }
+  .logout-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--muted);
+    font-family: 'Sora', sans-serif;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.75rem;
+    cursor: pointer;
+    transition: color .2s, border-color .2s;
+  }
+  .logout-btn:hover { color: var(--red); border-color: var(--red); }
+
+  /* ─── Match Cards ─── */
+  .matches-wrapper { display: flex; flex-direction: column; gap: 0.9rem; }
+
+  .match-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem;
+    position: relative;
+  }
+  .match-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+  }
+  .match-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .time-row { margin-bottom: 0.9rem; }
+  .time-row label { font-size: 0.68rem; color: var(--muted); display: block; margin-bottom: 0.3rem; }
+  .time-row input[type="time"] {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.45rem 0.75rem;
+    width: 130px;
+    outline: none;
+  }
+
+  .teams-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.7rem;
+    margin-bottom: 0.9rem;
+  }
+  .team-col label { font-size: 0.68rem; color: var(--muted); display: block; margin-bottom: 0.3rem; }
+  .team-col select {
+    width: 100%;
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.5rem 0.6rem;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b82a8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+  }
+  .team-col select option { background: #1a1d27; }
+  .team-col select optgroup { color: var(--muted); }
+
+  .odds-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+  }
+  .odd-box { display: flex; flex-direction: column; }
+  .odd-box label { font-size: 0.65rem; color: var(--muted); margin-bottom: 0.25rem; }
+  .odd-box input {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.45rem 0.5rem;
+    outline: none;
+    text-align: center;
+    width: 100%;
+  }
+  .odd-box input:focus { border-color: var(--green); }
+
+  .remove-btn {
+    position: absolute;
+    top: 0.75rem; right: 0.75rem;
+    background: none; border: none;
+    color: var(--muted); font-size: 1.1rem;
+    cursor: pointer; line-height: 1;
+    transition: color .2s;
+  }
+  .remove-btn:hover { color: var(--red); }
+
+  .add-match-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    background: none;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-family: 'Sora', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+    margin-top: 0.4rem;
+  }
+  .add-match-btn:hover { border-color: var(--green); color: var(--green); }
+
+  .analyse-btn {
+    width: 100%;
+    background: var(--green);
+    border: none;
+    border-radius: var(--radius);
+    color: #0f1117;
+    font-family: 'Sora', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 1rem;
+    cursor: pointer;
+    margin-top: 1.2rem;
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    transition: opacity .2s, transform .1s;
+    text-transform: uppercase;
+  }
+  .analyse-btn:active { transform: scale(0.98); opacity: 0.9; }
+
+  #resultsSection { margin-top: 1.5rem; display: none; flex-direction: column; gap: 0.9rem; }
+  #resultsSection.show { display: flex; }
+
+  .results-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--green);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 0 0.2rem;
+  }
+
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem;
+  }
+  .result-card .rc-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.9rem;
+  }
+  .boost-badge {
+    background: linear-gradient(135deg, #ffd740, #ff9800);
+    color: #000;
+    font-size: 0.6rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 0.2rem 0.55rem;
+    border-radius: 20px;
+  }
+  .rc-matchup { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+  .rc-time { font-size: 0.7rem; color: var(--muted); display: flex; align-items: center; gap: 0.25rem; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .stat-box {
+    background: var(--card2);
+    border-radius: 12px;
+    padding: 0.6rem 0.5rem 0.7rem;
+    text-align: center;
+  }
+  .stat-box .stat-label {
+    font-size: 0.6rem; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.8px; display: flex; align-items: center;
+    justify-content: center; gap: 0.2rem; margin-bottom: 0.35rem;
+  }
+  .stat-box .stat-value { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+  .stat-box.v1x2 .stat-value { color: var(--green); }
+  .stat-box.vscore .stat-value { color: var(--yellow); font-size: 1.2rem; }
+  .stat-box.vtotal .stat-value { color: var(--blue); }
+
+  .reliability {
+    display: flex; align-items: center; gap: 0.4rem;
+    margin-top: 0.9rem; font-size: 0.75rem; color: var(--muted);
+  }
+  .reliability .stars { color: var(--yellow); font-size: 0.9rem; letter-spacing: 1px; }
+  .reliability .label { font-weight: 600; color: var(--text); }
+
+  .error-msg {
+    background: #ff525222; border: 1px solid var(--red); color: var(--red);
+    border-radius: 10px; padding: 0.6rem 0.9rem; font-size: 0.8rem;
+    margin-top: 0.7rem; display: none;
+  }
+  .error-msg.show { display: block; }
+
+  footer { text-align: center; margin-top: 2.5rem; font-size: 0.65rem; color: #3a3f5a; }
+</style>
 </head>
 <body>
-    <div class="background-animation">
-        <div class="glow glow-1"></div>
-        <div class="glow glow-2"></div>
+
+<!-- ─── LOGIN ─── -->
+<div id="loginScreen">
+  <div class="login-logo">⚡ Boom</div>
+  <div class="login-sub">Bienvenue dans Boom — Paris Virtuels</div>
+  <div class="login-card">
+    <div class="login-field">
+      <label>Mot de passe</label>
+      <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
     </div>
+    <button class="login-btn" id="loginBtn">Se connecter</button>
+    <div class="login-error" id="loginError">⚠️ Mot de passe incorrect. Réessayez.</div>
+  </div>
+</div>
 
-    <div class="container">
-        <header class="glass-panel">
-            <h1>Bet<span class="highlight">Vision</span> VR</h1>
-            <p>Intelligence Artificielle & Stratégie Sportive</p>
-        </header>
+<!-- ─── MAIN APP ─── -->
+<div id="mainApp">
 
-        <main class="dashboard">
-            <!-- Section Bankroll -->
-            <section class="glass-panel bankroll-section">
-                <h2>💰 Bankroll</h2>
-                <div class="bankroll-content">
-                    <div class="input-group">
-                        <label for="bankroll">Capital Total</label>
-                        <input type="number" id="bankroll" value="60000" step="1000">
-                    </div>
-                    <div class="bankroll-stats">
-                        <div class="stat-box">
-                            <span class="label">Mise Sûre (5%)</span>
-                            <span class="value safe-bet" id="safeBet">3 000</span>
-                        </div>
-                        <div class="stat-box">
-                            <span class="label">Mise Max (10%)</span>
-                            <span class="value max-bet" id="maxBet">6 000</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Section Analyse -->
-            <section class="glass-panel analysis-section">
-                <h2>⚽ Analyser un Match</h2>
-                <div class="analysis-form">
-                    <div class="odds-inputs">
-                        <div class="input-group">
-                            <label for="coteA">Cote Équipe A (1)</label>
-                            <input type="number" id="coteA" placeholder="Ex: 1.96" step="0.01">
-                        </div>
-                        <div class="input-group">
-                            <label for="coteB">Cote Équipe B (2)</label>
-                            <input type="number" id="coteB" placeholder="Ex: 2.20" step="0.01">
-                        </div>
-                    </div>
-                    
-                    <div class="image-upload">
-                        <label for="screenshotBtn" class="upload-btn">
-                            📸 Importer une capture d'écran
-                        </label>
-                        <input type="file" id="screenshotBtn" accept="image/*" class="hidden">
-                        <small>L'intégration automatique de texte sera ajoutée prochainement. Veuillez entrer les cotes manuellement pour l'instant.</small>
-                    </div>
-
-                    <button id="analyzeBtn" class="btn-primary">Lancer l'Analyse 🚀</button>
-                    <div id="errorMsg" class="error-msg hidden">Veuillez entrer des cotes valides.</div>
-                </div>
-            </section>
-
-            <!-- Section Résultats -->
-            <section class="glass-panel results-section hidden" id="resultsSection">
-                <h2>📊 Pronostic & Stratégie</h2>
-                <div class="results-grid">
-                    <div class="result-card">
-                        <h3>Favori du Match</h3>
-                        <div id="resFavori" class="result-value">Équipe A</div>
-                    </div>
-                    <div class="result-card highlight-card">
-                        <h3>Pari Conseillé</h3>
-                        <div id="resPari" class="result-value huge-value">Over 2.5</div>
-                    </div>
-                    <div class="result-card">
-                        <h3>Score Probable</h3>
-                        <div id="resScore" class="result-value">2-1 ou 1-0</div>
-                    </div>
-                    <div class="result-card security-card hidden" id="cardSecurity">
-                        <h3>⚠️ Sécurité Activée</h3>
-                        <div id="resSecurity" class="result-value">Match Serré : Ajoutez 1-1 au score probable</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Lexique des Overs -->
-            <section class="glass-panel lexique-section">
-                <h2>📚 Guide des Paris "Over"</h2>
-                <div class="cards-container">
-                    <div class="info-card">
-                        <div class="badge over-15">Over 1.5</div>
-                        <p>Il faut au moins <strong>2 buts</strong> dans le match.</p>
-                        <span class="examples">Vainqueur : 1-1, 2-0, 3-0...</span>
-                    </div>
-                    <div class="info-card">
-                        <div class="badge over-25">Over 2.5</div>
-                        <p>Il faut au moins <strong>3 buts</strong> dans le match.</p>
-                        <span class="examples">Vainqueur : 2-1, 3-0, 2-2...</span>
-                    </div>
-                    <div class="info-card">
-                        <div class="badge over-35">Over 3.5</div>
-                        <p>Il faut au moins <strong>4 buts</strong> ou plus.</p>
-                        <span class="examples">Vainqueur : 2-2, 3-1, 4-0...</span>
-                    </div>
-                </div>
-            </section>
-        </main>
-        
-        <footer>
-            <p>Conçu pour une stratégie de paris sportifs virtuels optimisée.</p>
-        </footer>
+  <header>
+    <h1>⚡ Boom</h1>
+    <div class="header-right">
+      <span class="badge-pill">Paris Virtuels</span>
+      <button class="logout-btn" id="logoutBtn">Déconnexion</button>
     </div>
+  </header>
 
-    <script src="script.js"></script>
+  <div class="matches-wrapper" id="matchesWrapper"></div>
+
+  <button class="add-match-btn" id="addMatchBtn">＋ Ajouter un Match</button>
+
+  <button class="analyse-btn" id="analyzeBtn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    Analyser
+  </button>
+
+  <div class="error-msg" id="errorMsg">⚠️ Veuillez remplir les cotes de tous les matchs.</div>
+
+  <div id="resultsSection">
+    <div class="results-title">Résultats TTSK</div>
+    <div id="resultsCards"></div>
+  </div>
+
+  <footer>Boom — Stratégie de paris sportifs virtuels</footer>
+
+</div>
+
+<script>
+const CORRECT_PASSWORD = 'boom261#';
+
+const TEAMS = [
+  { group: "🔵 Grandes équipes", options: ["Manchester Red","Liverpool","Arsenal","Chelsea","Manchester City","Tottenham"] },
+  { group: "🟡 Moyennes", options: ["Newcastle","West Ham","Aston Villa","Brighton","Fulham","Crystal Palace"] },
+  { group: "🔴 Plus faibles", options: ["Bournemouth","Brentford","Wolverhampton","Everton","Nottingham Forest","Ipswich"] },
+  { group: "🟢 Autres", options: ["Leicester","Southampton","Sunderland","Leeds","Burnley"] },
+];
+
+function buildTeamOptions(selected) {
+  return TEAMS.map(g =>
+    `<optgroup label="${g.group}">${g.options.map(t =>
+      `<option value="${t}"${t===selected?' selected':''}>${t}</option>`
+    ).join('')}</optgroup>`
+  ).join('');
+}
+
+let matchCount = 0;
+
+function addMatchCard(teamA='', teamB='', time='07:00') {
+  matchCount++;
+  const id = matchCount;
+  const card = document.createElement('div');
+  card.className = 'match-card';
+  card.dataset.id = id;
+  card.innerHTML = `
+    <div class="card-header">
+      <span class="match-label">Match ${id}</span>
+    </div>
+    <button class="remove-btn" onclick="removeCard(${id})" title="Supprimer">✕</button>
+    <div class="time-row">
+      <label>🕐 Heure</label>
+      <input type="time" class="match-time" value="${time}">
+    </div>
+    <div class="teams-row">
+      <div class="team-col">
+        <label>Équipe 1</label>
+        <select class="teamA">${buildTeamOptions(teamA)}</select>
+      </div>
+      <div class="team-col">
+        <label>Équipe 2</label>
+        <select class="teamB">${buildTeamOptions(teamB)}</select>
+      </div>
+    </div>
+    <div class="odds-row">
+      <div class="odd-box">
+        <label>Cote 1</label>
+        <input type="number" class="coteA" placeholder="1.52" step="0.01" min="1.01">
+      </div>
+      <div class="odd-box">
+        <label>Cote X</label>
+        <input type="number" class="coteX" placeholder="4.38" step="0.01" min="1.01">
+      </div>
+      <div class="odd-box">
+        <label>Cote 2</label>
+        <input type="number" class="coteB" placeholder="5.78" step="0.01" min="1.01">
+      </div>
+    </div>
+  `;
+  document.getElementById('matchesWrapper').appendChild(card);
+}
+
+function removeCard(id) {
+  const card = document.querySelector(`.match-card[data-id="${id}"]`);
+  if (card) card.remove();
+  document.querySelectorAll('.match-card').forEach((c, i) => {
+    c.querySelector('.match-label').textContent = `Match ${i + 1}`;
+  });
+}
+
+function getReliability(coteFav) {
+  if (coteFav < 1.5) return { stars: '★★★★★', label: 'Très fort' };
+  if (coteFav < 1.9) return { stars: '★★★★☆', label: 'Fort' };
+  if (coteFav < 2.3) return { stars: '★★★☆☆', label: 'Moyen' };
+  return { stars: '★★☆☆☆', label: 'Risqué' };
+}
+
+function analyzeMatch(card) {
+  const coteA = parseFloat(card.querySelector('.coteA').value);
+  const coteB = parseFloat(card.querySelector('.coteB').value);
+  const teamA = card.querySelector('.teamA').value;
+  const teamB = card.querySelector('.teamB').value;
+  const time  = card.querySelector('.match-time').value;
+  if (isNaN(coteA) || isNaN(coteB) || coteA <= 1 || coteB <= 1) return null;
+  const coteFav = Math.min(coteA, coteB);
+  let outcome, score, total;
+  if (coteFav < 1.50)       { outcome = coteA <= coteB ? '1' : '2'; score = '2-0'; total = 2; }
+  else if (coteFav <= 2.20) { outcome = coteA <= coteB ? '1' : '2'; score = '2-1'; total = 3; }
+  else                      { outcome = 'X'; score = '2-2'; total = 4; }
+  return { teamA, teamB, time, outcome, score, total, rel: getReliability(coteFav) };
+}
+
+function doLogin() {
+  const pwd = document.getElementById('loginPassword').value;
+  const err = document.getElementById('loginError');
+  if (pwd === CORRECT_PASSWORD) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainApp').classList.add('show');
+    addMatchCard('Manchester Red', 'Sunderland', '07:00');
+  } else {
+    err.classList.add('show');
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginPassword').focus();
+  }
+}
+
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPassword').addEventListener('keypress', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  document.getElementById('mainApp').classList.remove('show');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginError').classList.remove('show');
+  document.getElementById('matchesWrapper').innerHTML = '';
+  document.getElementById('resultsSection').classList.remove('show');
+  matchCount = 0;
+});
+
+document.getElementById('addMatchBtn').addEventListener('click', () => addMatchCard());
+
+document.getElementById('analyzeBtn').addEventListener('click', () => {
+  const cards = document.querySelectorAll('.match-card');
+  const errorEl = document.getElementById('errorMsg');
+  const resultsSection = document.getElementById('resultsSection');
+  const resultsCards = document.getElementById('resultsCards');
+
+  if (cards.length === 0) {
+    errorEl.textContent = '⚠️ Ajoutez au moins un match.';
+    errorEl.classList.add('show');
+    resultsSection.classList.remove('show');
+    return;
+  }
+
+  let html = '';
+  let hasError = false;
+
+  cards.forEach(card => {
+    const res = analyzeMatch(card);
+    if (!res) { hasError = true; return; }
+    html += `
+      <div class="result-card" style="margin-bottom: 0.9rem;">
+        <div class="rc-header">
+          <div>
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;">
+              <span class="boost-badge">⭐ BOOST MODE</span>
+            </div>
+            <div class="rc-matchup">${res.teamA} vs ${res.teamB}</div>
+          </div>
+          <div class="rc-time">🕐 ${res.time}</div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-box v1x2">
+            <div class="stat-label">🏆 1X2</div>
+            <div class="stat-value">${res.outcome}</div>
+          </div>
+          <div class="stat-box vscore">
+            <div class="stat-label">⚽ Score</div>
+            <div class="stat-value">${res.score}</div>
+          </div>
+          <div class="stat-box vtotal">
+            <div class="stat-label"># Total</div>
+            <div class="stat-value">${res.total}</div>
+          </div>
+        </div>
+        <div class="reliability">
+          <span class="stars">${res.rel.stars}</span>
+          <span class="label">(${res.rel.label})</span>
+        </div>
+      </div>
+    `;
+  });
+
+  if (hasError) {
+    errorEl.textContent = '⚠️ Veuillez remplir les cotes de tous les matchs.';
+    errorEl.classList.add('show');
+    resultsSection.classList.remove('show');
+    return;
+  }
+
+  errorEl.classList.remove('show');
+  resultsCards.innerHTML = html;
+  resultsSection.classList.add('show');
+  resultsSection.scrollIntoView({ behavior: 'smooth' });
+});
+</script>
 </body>
 </html>
