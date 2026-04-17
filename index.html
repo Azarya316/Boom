@@ -1,801 +1,1077 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Boom — Analyseur v3</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>Safe Boom — Analyseur</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0f1117;
-    --card: #1a1d27;
-    --card2: #22263a;
-    --border: #2e334d;
-    --green: #00e676;
-    --green-dim: #00c85c22;
-    --yellow: #ffd740;
-    --blue: #4fc3f7;
-    --orange: #ff9800;
-    --text: #e8eaf6;
-    --muted: #7b82a8;
-    --red: #ff5252;
-    --radius: 16px;
-  }
+/* ═══════════════════════════════════════════
+   VARIABLES — DARK / LIGHT
+═══════════════════════════════════════════ */
+:root {
+  --accent: #7c4dff;
+  --accent2: #b388ff;
+  --accent-dim: #7c4dff22;
+  --accent-glow: #7c4dff44;
+  --green: #00e676;
+  --green-dim: #00e67618;
+  --yellow: #ffd740;
+  --blue: #4fc3f7;
+  --orange: #ff9800;
+  --red: #ff5252;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --sidebar-w: 220px;
+  --topbar-h: 56px;
+  --transition: 0.2s ease;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+[data-theme="dark"] {
+  --bg: #0d0d14;
+  --bg2: #13131f;
+  --card: #1a1a2e;
+  --card2: #20203a;
+  --border: #2a2a4a;
+  --text: #e8e8f8;
+  --text2: #9898c0;
+  --text3: #5a5a88;
+  --topbar-bg: #0d0d14ee;
+  --sidebar-bg: #13131f;
+  --shadow: 0 4px 24px #0008;
+}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Sora', sans-serif;
-    min-height: 100vh;
-    padding: 0;
-  }
+[data-theme="light"] {
+  --bg: #f0f0fa;
+  --bg2: #e8e8f8;
+  --card: #ffffff;
+  --card2: #f5f5ff;
+  --border: #dcdcf0;
+  --text: #1a1a3e;
+  --text2: #5a5a88;
+  --text3: #9898c0;
+  --topbar-bg: #f0f0faee;
+  --sidebar-bg: #ffffff;
+  --shadow: 0 4px 24px #0001;
+}
 
-  /* ─── LOGIN ─── */
-  #loginScreen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    padding: 2rem 1.5rem;
-    max-width: 420px;
-    margin: 0 auto;
-  }
-  .login-logo {
-    font-size: 2.8rem;
-    font-weight: 800;
-    color: var(--green);
-    letter-spacing: -1px;
-    margin-bottom: 0.3rem;
-  }
-  .login-sub {
-    font-size: 0.85rem;
-    color: var(--muted);
-    margin-bottom: 2.2rem;
-    text-align: center;
-  }
-  .login-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.8rem 1.5rem;
-    width: 100%;
-  }
-  .login-field { margin-bottom: 1rem; }
-  .login-field label {
-    display: block;
-    font-size: 0.7rem;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.4rem;
-  }
-  .login-field input {
-    width: 100%;
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'Sora', sans-serif;
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 0.65rem 0.9rem;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .login-field input:focus { border-color: var(--green); }
-  .login-btn {
-    width: 100%;
-    background: var(--green);
-    border: none;
-    border-radius: var(--radius);
-    color: #0f1117;
-    font-family: 'Sora', sans-serif;
-    font-size: 1rem;
-    font-weight: 800;
-    letter-spacing: 1px;
-    padding: 0.85rem;
-    cursor: pointer;
-    margin-top: 0.5rem;
-    text-transform: uppercase;
-    transition: opacity .2s, transform .1s;
-  }
-  .login-btn:active { transform: scale(0.98); opacity: 0.9; }
-  .login-error {
-    background: #ff525222;
-    border: 1px solid var(--red);
-    color: var(--red);
-    border-radius: 10px;
-    padding: 0.5rem 0.9rem;
-    font-size: 0.8rem;
-    margin-top: 0.8rem;
-    display: none;
-    text-align: center;
-  }
-  .login-error.show { display: block; }
+/* ═══════════════════════════════════════════
+   BASE
+═══════════════════════════════════════════ */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  min-height: 100vh;
+  transition: background var(--transition), color var(--transition);
+}
 
-  /* ─── LEAGUE SELECTOR ─── */
-  .league-selector {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1.2rem;
-    border-radius: 12px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 0.3rem;
-  }
-  .league-btn {
-    flex: 1;
-    padding: 0.5rem 0.4rem;
-    border: none;
-    border-radius: 9px;
-    font-family: 'Sora', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: transparent;
-    color: var(--muted);
-    text-align: center;
-    letter-spacing: 0.3px;
-  }
-  .league-btn.active-eng {
-    background: #1565c0;
-    color: #fff;
-  }
-  .league-btn.active-caf {
-    background: #b71c1c;
-    color: #ffd740;
-  }
+/* ═══════════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════════ */
+#loginScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem 1.5rem;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+#loginScreen::before {
+  content: '';
+  position: absolute;
+  top: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, #7c4dff33 0%, transparent 70%);
+  pointer-events: none;
+}
+.login-logo {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.3rem;
+  letter-spacing: -1px;
+}
+.login-sub {
+  font-size: 0.82rem;
+  color: var(--text2);
+  margin-bottom: 2rem;
+}
+.login-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem 1.8rem;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--shadow);
+}
+.login-field { margin-bottom: 1rem; }
+.login-field label {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 0.4rem;
+  font-weight: 700;
+}
+.login-field input {
+  width: 100%;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.7rem 1rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.login-field input:focus { border-color: var(--accent); }
+.login-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent), #9c6fff);
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+  font-family: 'Sora', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 0.85rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  transition: opacity .2s, transform .1s;
+  box-shadow: 0 4px 20px #7c4dff44;
+}
+.login-btn:active { transform: scale(0.98); opacity: 0.9; }
+.login-error {
+  background: #ff525218;
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  margin-top: 0.8rem;
+  display: none;
+  text-align: center;
+}
+.login-error.show { display: block; }
 
-  /* ─── AUTOFILL BUTTON ─── */
-  .autofill-btn {
-    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
-    width: 100%;
-    background: #7c4dff22;
-    border: 1.5px solid #7c4dff;
-    border-radius: 12px;
-    color: #b39ddb;
-    font-family: 'Sora', sans-serif;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    padding: 0.55rem;
-    margin-top: 0.4rem;
-    margin-bottom: 0.2rem;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: background .2s, transform .1s;
-  }
-  .autofill-btn:active { transform: scale(0.98); }
-  .autofill-btn:hover { background: #7c4dff44; color: #d1c4e9; }
+/* ═══════════════════════════════════════════
+   LAYOUT — YOUTUBE STYLE
+═══════════════════════════════════════════ */
+#mainApp { display: none; }
+#mainApp.show { display: flex; flex-direction: column; min-height: 100vh; }
 
-  /* ─── MAIN APP ─── */
-  #mainApp {
-    display: none;
-    padding: 1.2rem 1rem 3rem;
-    max-width: 420px;
-    margin: 0 auto;
-  }
-  #mainApp.show { display: block; }
+/* ── TOPBAR ── */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  background: var(--topbar-bg);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 1.2rem;
+  gap: 1rem;
+  z-index: 100;
+}
+.topbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.topbar-logo .logo-icon {
+  font-size: 1.3rem;
+  -webkit-text-fill-color: initial;
+}
+.topbar-search {
+  flex: 1;
+  display: flex;
+  gap: 0.4rem;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.topbar-search input {
+  flex: 1;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 30px;
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.82rem;
+  padding: 0.4rem 1rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.topbar-search input:focus { border-color: var(--accent); }
+.topbar-right { display: flex; align-items: center; gap: 0.6rem; margin-left: auto; }
+.topbar-badge {
+  font-size: 0.68rem;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  color: var(--accent2);
+  border-radius: 20px;
+  padding: 0.25rem 0.7rem;
+  font-weight: 700;
+}
+.theme-btn {
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 50%;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+}
+.theme-btn:hover { border-color: var(--accent); }
+.logout-btn {
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  color: var(--text2);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.3rem 0.8rem;
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+.logout-btn:hover { color: var(--red); border-color: var(--red); }
 
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.4rem;
-  }
-  header h1 {
-    font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    color: var(--green);
-  }
-  .header-right { display: flex; align-items: center; gap: 0.6rem; }
-  .badge-pill {
-    font-size: 0.72rem;
-    color: var(--muted);
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 0.3rem 0.8rem;
-  }
-  .logout-btn {
-    background: none;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    color: var(--muted);
-    font-family: 'Sora', sans-serif;
-    font-size: 0.7rem;
-    padding: 0.3rem 0.75rem;
-    cursor: pointer;
-    transition: color .2s, border-color .2s;
-  }
-  .logout-btn:hover { color: var(--red); border-color: var(--red); }
+/* ── BODY LAYOUT ── */
+.app-body {
+  display: flex;
+  margin-top: var(--topbar-h);
+  min-height: calc(100vh - var(--topbar-h));
+}
 
-  /* ─── Match Cards ─── */
-  .matches-wrapper { display: flex; flex-direction: column; gap: 0.9rem; }
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  padding: 1rem 0.6rem;
+  position: fixed;
+  top: var(--topbar-h);
+  left: 0;
+  bottom: 0;
+  overflow-y: auto;
+  z-index: 90;
+  transition: background var(--transition);
+}
+.sidebar-section { margin-bottom: 1.2rem; }
+.sidebar-section-title {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 0 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text2);
+  transition: background var(--transition), color var(--transition);
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  text-decoration: none;
+}
+.sidebar-item:hover { background: var(--card2); color: var(--text); }
+.sidebar-item.active {
+  background: var(--accent-dim);
+  color: var(--accent2);
+  border: 1px solid var(--accent-glow);
+}
+.sidebar-item .si-icon { font-size: 1rem; min-width: 20px; text-align: center; }
+.sidebar-item .si-count {
+  margin-left: auto;
+  font-size: 0.6rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 10px;
+  padding: 0.1rem 0.4rem;
+  font-weight: 700;
+}
+.sidebar-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0.8rem 0.5rem;
+}
+.sidebar-league {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0 0.2rem;
+}
+.league-btn {
+  padding: 0.5rem 0.7rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+  color: var(--text2);
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.league-btn.active-eng { background: #1565c022; border-color: #1565c0; color: #64b5f6; }
+.league-btn.active-caf { background: #b71c1c22; border-color: #b71c1c; color: #ffd740; }
 
-  .match-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem 1.1rem;
-    position: relative;
-  }
-  .match-card .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.8rem;
-  }
-  .match-label {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--green);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
+/* ── MAIN CONTENT ── */
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  padding: 1.4rem 1.6rem 3rem;
+  max-width: calc(100vw - var(--sidebar-w));
+}
 
-  .time-row { margin-bottom: 0.9rem; }
-  .time-row label { font-size: 0.68rem; color: var(--muted); display: block; margin-bottom: 0.3rem; }
-  .time-row input[type="time"] {
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'Sora', sans-serif;
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 0.45rem 0.75rem;
-    width: 130px;
-    outline: none;
-  }
+/* ── SECTION HEADER (YouTube-style) ── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.section-header h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.see-all-btn {
+  font-size: 0.72rem;
+  color: var(--accent2);
+  font-weight: 700;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: 'Sora', sans-serif;
+  text-decoration: none;
+}
 
-  .section-title {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 0.5rem;
-    margin-top: 0.2rem;
-    padding-bottom: 0.3rem;
-    border-bottom: 1px solid var(--border);
-  }
+/* ── SUMMARY STRIP (like YouTube trending) ── */
+#summaryPanel {
+  display: none;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 1.4rem;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+#summaryPanel.show { display: block; }
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--accent-dim);
+}
+.summary-header span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent2);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+.summary-header .sum-count { font-size: 0.7rem; color: var(--text2); }
+#summaryRows { padding: 0.3rem 0; }
+.sum-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+  transition: background var(--transition);
+}
+.sum-row:last-child { border-bottom: none; }
+.sum-row:hover { background: var(--card2); }
+.sum-num   { font-size: 0.6rem; color: var(--text3); min-width: 18px; font-family: 'Space Mono', monospace; }
+.sum-teams { flex: 1; font-weight: 600; color: var(--text); }
+.sum-out   { font-weight: 800; font-size: 0.9rem; color: var(--green); min-width: 20px; text-align: center; }
+.sum-score { color: var(--blue); font-size: 0.72rem; min-width: 36px; text-align: center; font-family: 'Space Mono', monospace; }
+.sum-stars { color: var(--yellow); font-size: 0.68rem; }
+.sum-over  { color: var(--orange); font-size: 0.68rem; min-width: 60px; text-align: center; }
 
-  .teams-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.7rem;
-    margin-bottom: 0.9rem;
-  }
-  .team-col label { font-size: 0.68rem; color: var(--muted); display: block; margin-bottom: 0.3rem; }
-  .team-col select {
-    width: 100%;
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'Sora', sans-serif;
-    font-size: 0.82rem;
-    font-weight: 600;
-    padding: 0.5rem 0.6rem;
-    outline: none;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237b82a8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.6rem center;
-  }
-  .team-col select option { background: #1a1d27; }
-  .team-col select optgroup { color: var(--muted); }
+/* ── MATCH GRID (YouTube cards layout) ── */
+.matches-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(370px, 1fr));
+  gap: 1.2rem;
+  align-items: start;
+}
 
-  /* ─── CLASSEMENT (Rang) ─── */
-  .rank-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.7rem;
-    margin-bottom: 0.9rem;
-  }
-  .rank-col label { font-size: 0.68rem; color: var(--muted); display: block; margin-bottom: 0.3rem; }
-  .rank-col input[type="number"] {
-    width: 100%;
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--yellow);
-    font-family: 'Sora', sans-serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    padding: 0.45rem 0.6rem;
-    outline: none;
-    text-align: center;
-  }
-  .rank-col input[type="number"]:focus { border-color: var(--yellow); }
+/* ── MATCH CARD ── */
+.match-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+  box-shadow: var(--shadow);
+  transition: border-color var(--transition), transform var(--transition);
+}
+.match-card:hover { border-color: var(--accent-glow); transform: translateY(-1px); }
 
-  .rank-gap-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.4rem 0.7rem;
-    margin-bottom: 0.9rem;
-    font-size: 0.75rem;
-    color: var(--muted);
-  }
-  .rank-gap-indicator .gap-value { font-weight: 700; font-size: 0.9rem; }
-  .rank-gap-indicator .gap-value.big    { color: var(--green); }
-  .rank-gap-indicator .gap-value.medium { color: var(--yellow); }
-  .rank-gap-indicator .gap-value.small  { color: var(--red); }
+/* Card "thumbnail" header — like YouTube */
+.card-thumb {
+  background: linear-gradient(135deg, #13131f 0%, #1e1e38 100%);
+  padding: 0.9rem 1rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+[data-theme="light"] .card-thumb {
+  background: linear-gradient(135deg, var(--card2) 0%, #ebe8ff 100%);
+}
+.card-thumb-left { display: flex; align-items: center; gap: 0.6rem; }
+.card-num-badge {
+  width: 28px; height: 28px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #fff;
+  font-family: 'Space Mono', monospace;
+}
+.match-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.match-time-badge {
+  font-size: 0.65rem;
+  font-family: 'Space Mono', monospace;
+  color: var(--text2);
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.2rem 0.5rem;
+}
+.remove-btn {
+  background: none; border: none;
+  color: var(--text3); font-size: 1rem;
+  cursor: pointer; line-height: 1;
+  transition: color var(--transition);
+  padding: 0.2rem;
+}
+.remove-btn:hover { color: var(--red); }
 
-  /* ─── FORME RÉCENTE ─── */
-  .form-section { margin-bottom: 0.9rem; }
-  .form-teams-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.7rem;
-  }
-  .form-team-col {}
-  .form-team-label {
-    font-size: 0.68rem;
-    color: var(--muted);
-    display: block;
-    margin-bottom: 0.4rem;
-    font-weight: 700;
-  }
-  .form-slots {
-    display: flex;
-    gap: 0.28rem;
-  }
-  .form-slot {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.15rem;
-  }
-  .form-slot .slot-num {
-    font-size: 0.5rem;
-    color: var(--muted);
-    font-weight: 700;
-  }
-  .form-slot select {
-    width: 100%;
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    color: var(--text);
-    font-family: 'Sora', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.3rem 0.1rem;
-    outline: none;
-    appearance: none;
-    -webkit-appearance: none;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .form-slot select.val-W { border-color: var(--green); color: var(--green); background: #00e67612; }
-  .form-slot select.val-D { border-color: #7b82a8;     color: #aab0cc;       background: #7b82a811; }
-  .form-slot select.val-L { border-color: var(--red);  color: var(--red);    background: #ff525212; }
-  .form-slot select option { background: #1a1d27; color: var(--text); }
+.card-body { padding: 0.9rem 1rem; }
 
-  .form-score-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.35rem 0.75rem;
-    margin-top: 0.5rem;
-    font-size: 0.72rem;
-    color: var(--muted);
-  }
-  .form-score-bar .fsb-label { font-size: 0.62rem; }
-  .form-score-bar .fsb-val {
-    font-weight: 800;
-    font-size: 0.82rem;
-  }
-  .form-score-bar .fsb-val.great  { color: var(--green); }
-  .form-score-bar .fsb-val.good   { color: #8bc34a; }
-  .form-score-bar .fsb-val.medium { color: var(--yellow); }
-  .form-score-bar .fsb-val.poor   { color: var(--red); }
+/* ── SCANNER ZONE ── */
+.scanner-zone { margin-bottom: 0.9rem; }
+.scanner-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--border);
+}
+.scanner-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.scan-upload-box {
+  position: relative;
+  border: 1.5px dashed #7c4dff66;
+  border-radius: var(--radius-sm);
+  background: #7c4dff08;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-height: 68px;
+  text-align: center;
+  gap: 0.2rem;
+  overflow: hidden;
+}
+.scan-upload-box:hover { border-color: var(--accent); background: var(--accent-dim); }
+.scan-upload-box input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer;
+}
+.scan-upload-box .scan-icon { font-size: 1.3rem; }
+.scan-upload-box .scan-label {
+  font-size: 0.58rem; font-weight: 700; color: var(--accent2);
+  letter-spacing: 0.5px; line-height: 1.3; text-transform: uppercase;
+}
+.scan-upload-box .scan-sub { font-size: 0.52rem; color: var(--text3); }
+.scan-upload-box.has-img { border-color: var(--green); background: var(--green-dim); }
+.scan-upload-box.scanning { border-color: var(--yellow); animation: pulse-border 0.8s infinite alternate; }
+@keyframes pulse-border { from { border-color: var(--yellow); } to { border-color: var(--orange); } }
+.thumb-preview { width: 100%; max-height: 52px; object-fit: cover; border-radius: 6px; margin-top: 0.25rem; display: none; }
 
-  /* ─── ODDS ─── */
-  .odds-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 0.5rem;
-    margin-bottom: 0.4rem;
-  }
-  .odd-box { display: flex; flex-direction: column; }
-  .odd-box label { font-size: 0.65rem; color: var(--muted); margin-bottom: 0.25rem; }
-  .odd-box input {
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'Sora', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    padding: 0.45rem 0.5rem;
-    outline: none;
-    text-align: center;
-    width: 100%;
-  }
-  .odd-box input:focus { border-color: var(--green); }
+.scan-btn {
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  width: 100%;
+  background: var(--accent-dim);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--radius-sm);
+  color: var(--accent2);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 0.5rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+.scan-btn:hover { background: var(--accent-glow); color: #fff; }
+.scan-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-  /* ─── EXTRA MARKETS (Bet261) ─── */
-  .extra-markets {
-    margin-top: 0.7rem;
-    margin-bottom: 0.4rem;
-  }
-  .extra-markets-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-  .extra-box { display: flex; flex-direction: column; }
-  .extra-box label { font-size: 0.62rem; color: var(--muted); margin-bottom: 0.25rem; }
-  .extra-box input {
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--orange);
-    font-family: 'Sora', sans-serif;
-    font-size: 0.88rem;
-    font-weight: 700;
-    padding: 0.4rem 0.5rem;
-    outline: none;
-    text-align: center;
-    width: 100%;
-  }
-  .extra-box input:focus { border-color: var(--orange); }
+.scan-status {
+  font-size: 0.7rem; font-weight: 700;
+  border-radius: var(--radius-sm);
+  padding: 0.38rem 0.7rem;
+  margin-top: 0.35rem;
+  text-align: center; display: none;
+}
+.scan-status.show { display: block; }
+.scan-status.loading { background: #ffd74018; color: var(--yellow); border: 1px solid var(--yellow); }
+.scan-status.success { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+.scan-status.error   { background: #ff525218; color: var(--red); border: 1px solid var(--red); }
 
-  .remove-btn {
-    position: absolute;
-    top: 0.75rem; right: 0.75rem;
-    background: none; border: none;
-    color: var(--muted); font-size: 1.1rem;
-    cursor: pointer; line-height: 1;
-    transition: color .2s;
-  }
-  .remove-btn:hover { color: var(--red); }
+/* ── SECTION TITLE (in-card) ── */
+.sec-title {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 0.8rem 0 0.45rem;
+  padding-bottom: 0.28rem;
+  border-bottom: 1px solid var(--border);
+}
 
-  .add-match-btn {
-    display: flex; align-items: center; justify-content: center;
-    gap: 0.4rem;
-    width: 100%;
-    background: none;
-    border: 1.5px dashed var(--border);
-    border-radius: var(--radius);
-    color: var(--muted);
-    font-family: 'Sora', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 0.85rem;
-    margin-top: 0.5rem;
-    cursor: pointer;
-    transition: color .2s, border-color .2s;
-  }
-  .add-match-btn:hover { color: var(--green); border-color: var(--green); }
+/* ── TIME ── */
+.time-row { margin-bottom: 0.1rem; }
+.time-row input[type="time"] {
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.38rem 0.7rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.time-row input[type="time"]:focus { border-color: var(--accent); }
 
-  /* ─── Results ─── */
-  .error-msg {
-    background: #ff525218;
-    border: 1px solid var(--red);
-    color: var(--red);
-    border-radius: 10px;
-    padding: 0.6rem 1rem;
-    font-size: 0.8rem;
-    margin-top: 0.8rem;
-    display: none;
-    text-align: center;
-  }
-  .error-msg.show { display: block; }
+/* ── TEAMS ── */
+.teams-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-bottom: 0.2rem;
+}
+.team-col label { font-size: 0.6rem; color: var(--text2); display: block; margin-bottom: 0.25rem; font-weight: 700; }
+.team-col select {
+  width: 100%;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.42rem 0.55rem;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237c4dff' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  transition: border-color var(--transition);
+}
+.team-col select:focus { border-color: var(--accent); }
+.team-col select option { background: var(--card); }
 
-  .card-result {
-    display: none;
-    margin-top: 0.9rem;
-    border-top: 1px solid var(--border);
-    padding-top: 0.9rem;
-    animation: fadeIn 0.3s ease;
-  }
-  .card-result.show { display: block; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+/* ── RANG ── */
+.rank-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin-bottom: 0.4rem;
+}
+.rank-col label { font-size: 0.6rem; color: var(--text2); display: block; margin-bottom: 0.25rem; font-weight: 700; }
+.rank-col input[type="number"] {
+  width: 100%;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--yellow);
+  font-family: 'Space Mono', monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 0.38rem 0.5rem;
+  outline: none;
+  text-align: center;
+  transition: border-color var(--transition);
+}
+.rank-col input:focus { border-color: var(--yellow); }
 
-  .card-result .cr-label {
-    font-size: 0.62rem;
-    font-weight: 700;
-    color: var(--green);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 0.5rem;
-  }
-  .card-result .cr-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  .cr-chip {
-    display: flex; flex-direction: column; align-items: center;
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.4rem 0.7rem;
-    min-width: 52px;
-  }
-  .cr-chip .ch-label { font-size: 0.55rem; color: var(--muted); margin-bottom: 0.15rem; }
-  .cr-chip .ch-value { font-size: 1rem; font-weight: 800; }
-  .cr-chip.cr-1x2   .ch-value { color: var(--green); }
-  .cr-chip.cr-score .ch-value { color: var(--blue); font-size: 0.9rem; }
-  .cr-chip.cr-total .ch-value { color: var(--yellow); }
-  .cr-chip.cr-rel   .ch-value { color: var(--yellow); font-size: 0.7rem; }
-  .cr-chip.cr-form  .ch-value { color: var(--blue); font-size: 0.78rem; }
-  .cr-chip.cr-over  .ch-value { color: var(--orange); font-size: 0.85rem; }
-  .cr-chip.cr-under .ch-value { color: #80cbc4; font-size: 0.85rem; }
-  .cr-chip.cr-gg    .ch-value { color: #ce93d8; font-size: 0.85rem; }
-  .cr-chip.cr-dc    .ch-value { color: #80deea; font-size: 0.85rem; }
+.rank-gap-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.32rem 0.7rem;
+  margin-bottom: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+.rank-gap-indicator .gap-value { font-weight: 800; font-size: 0.88rem; font-family: 'Space Mono', monospace; }
+.gap-value.big    { color: var(--green); }
+.gap-value.medium { color: var(--yellow); }
+.gap-value.small  { color: var(--red); }
 
-  .cr-conf-badge {
-    font-size: 0.65rem; font-weight: 700;
-    padding: 0.25rem 0.55rem;
-    border-radius: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-left: auto;
-  }
-  .cr-conf-badge.high { background: #00e67622; color: var(--green); border: 1px solid var(--green); }
-  .cr-conf-badge.med  { background: #ffd74022; color: var(--yellow); border: 1px solid var(--yellow); }
-  .cr-conf-badge.low  { background: #ff525222; color: var(--red); border: 1px solid var(--red); }
+/* ── FORME ── */
+.form-section { margin-bottom: 0.2rem; }
+.form-teams-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.form-team-label { font-size: 0.6rem; color: var(--text2); display: block; margin-bottom: 0.3rem; font-weight: 700; }
+.form-slots { display: flex; gap: 0.22rem; }
+.form-slot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.12rem; }
+.form-slot .slot-num { font-size: 0.48rem; color: var(--text3); font-weight: 700; }
+.form-slot select {
+  width: 100%;
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.05rem;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.form-slot select.val-W { border-color: var(--green); color: var(--green); background: #00e67612; }
+.form-slot select.val-D { border-color: #5a5a88; color: #9898c0; background: #5a5a8811; }
+.form-slot select.val-L { border-color: var(--red); color: var(--red); background: #ff525212; }
+.form-slot select option { background: var(--card); color: var(--text); }
 
-  .card-analyse-btn {
-    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
-    width: 100%;
-    background: var(--green-dim);
-    border: 1.5px solid var(--green);
-    border-radius: 12px;
-    color: var(--green);
-    font-family: 'Sora', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    padding: 0.6rem;
-    margin-top: 0.9rem;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: background .2s, transform .1s;
-  }
-  .card-analyse-btn:active { transform: scale(0.98); }
-  .card-analyse-btn:hover { background: #00e67633; }
+.form-score-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.65rem;
+  margin-top: 0.4rem;
+  font-size: 0.68rem;
+  color: var(--text2);
+}
+.fsb-val { font-weight: 800; font-size: 0.75rem; }
+.fsb-val.great  { color: var(--green); }
+.fsb-val.good   { color: #8bc34a; }
+.fsb-val.medium { color: var(--yellow); }
+.fsb-val.poor   { color: var(--red); }
 
-  /* ─── SUMMARY ─── */
-  #summaryPanel {
-    display: none;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 1rem;
-    overflow: hidden;
-  }
-  #summaryPanel.show { display: block; }
-  .summary-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.6rem 1rem;
-    border-bottom: 1px solid var(--border);
-  }
-  .summary-header span { font-size: 0.72rem; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 1.5px; }
-  .summary-header .sum-count { font-size: 0.72rem; color: var(--muted); }
-  #summaryRows { padding: 0.5rem 0; }
-  .sum-row {
-    display: flex; align-items: center; gap: 0.5rem;
-    padding: 0.45rem 1rem;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.78rem;
-  }
-  .sum-row:last-child { border-bottom: none; }
-  .sum-row .sum-num   { font-size: 0.65rem; color: var(--muted); min-width: 18px; }
-  .sum-row .sum-teams { flex: 1; font-weight: 600; }
-  .sum-row .sum-out   { font-weight: 800; font-size: 0.85rem; color: var(--green); min-width: 20px; text-align: center; }
-  .sum-row .sum-score { color: var(--blue); font-size: 0.75rem; min-width: 32px; text-align: center; }
-  .sum-row .sum-stars { color: var(--yellow); font-size: 0.7rem; }
-  .sum-row .sum-over  { color: var(--orange); font-size: 0.7rem; min-width: 36px; text-align: center; }
+/* ── COTES ── */
+.odds-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.45rem;
+  margin-bottom: 0.2rem;
+}
+.odd-box { display: flex; flex-direction: column; }
+.odd-box label { font-size: 0.58rem; color: var(--text2); margin-bottom: 0.22rem; font-weight: 700; }
+.odd-box input {
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 0.4rem 0.4rem;
+  outline: none;
+  text-align: center;
+  width: 100%;
+  transition: border-color var(--transition);
+}
+.odd-box input:focus { border-color: var(--accent); }
 
-  footer {
-    text-align: center;
-    margin-top: 2.5rem;
-    font-size: 0.65rem;
-    color: #3a3f5a;
-    line-height: 1.7;
-  }
-  footer strong { color: #55607a; }
+/* ── EXTRA MARKETS ── */
+.extra-markets-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  margin-bottom: 0.2rem;
+}
+.extra-box { display: flex; flex-direction: column; }
+.extra-box label { font-size: 0.58rem; color: var(--text2); margin-bottom: 0.22rem; font-weight: 700; }
+.extra-box input {
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--orange);
+  font-family: 'Space Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.35rem 0.4rem;
+  outline: none;
+  text-align: center;
+  width: 100%;
+  transition: border-color var(--transition);
+}
+.extra-box input:focus { border-color: var(--orange); }
 
-  /* ─── SCANNER ZONE ─── */
-  .scanner-zone {
-    margin-bottom: 0.9rem;
-  }
-  .scanner-title {
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 0.5rem;
-    margin-top: 0.2rem;
-    padding-bottom: 0.3rem;
-    border-bottom: 1px solid var(--border);
-  }
-  .scanner-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-  .scan-upload-box {
-    position: relative;
-    border: 1.5px dashed #7c4dff88;
-    border-radius: 12px;
-    background: #7c4dff0d;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 0.7rem 0.5rem;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    min-height: 72px;
-    text-align: center;
-    gap: 0.25rem;
-  }
-  .scan-upload-box:hover { border-color: #7c4dff; background: #7c4dff22; }
-  .scan-upload-box input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-  }
-  .scan-upload-box .scan-icon { font-size: 1.4rem; }
-  .scan-upload-box .scan-label {
-    font-size: 0.62rem; font-weight: 700; color: #b39ddb; letter-spacing: 0.5px; line-height: 1.3;
-    text-transform: uppercase;
-  }
-  .scan-upload-box .scan-sub {
-    font-size: 0.55rem; color: var(--muted);
-  }
-  .scan-upload-box.has-img { border-color: var(--green); background: #00e67611; }
-  .scan-upload-box.has-img .scan-icon::after { content: ' ✓'; font-size: 0.9rem; color: var(--green); }
-  .scan-upload-box.scanning { border-color: var(--yellow); animation: pulse-border 0.8s infinite alternate; }
-  @keyframes pulse-border { from { border-color: var(--yellow); } to { border-color: #ff9800; } }
-  .scan-status {
-    font-size: 0.72rem;
-    font-weight: 700;
-    border-radius: 10px;
-    padding: 0.4rem 0.7rem;
-    margin-top: 0.2rem;
-    text-align: center;
-    display: none;
-  }
-  .scan-status.show { display: block; }
-  .scan-status.loading { background: #ffd74022; color: var(--yellow); border: 1px solid var(--yellow); }
-  .scan-status.success { background: #00e67622; color: var(--green); border: 1px solid var(--green); }
-  .scan-status.error   { background: #ff525222; color: var(--red);   border: 1px solid var(--red); }
-  .scan-btn {
-    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
-    width: 100%;
-    background: #7c4dff22;
-    border: 1.5px solid #7c4dff;
-    border-radius: 12px;
-    color: #d1c4e9;
-    font-family: 'Sora', sans-serif;
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.8px;
-    padding: 0.6rem;
-    cursor: pointer;
-    text-transform: uppercase;
-    transition: background .2s, transform .1s;
-    margin-top: 0.3rem;
-  }
-  .scan-btn:active { transform: scale(0.98); }
-  .scan-btn:hover { background: #7c4dff44; color: #ede7f6; }
-  .scan-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .thumb-preview {
-    width: 100%; max-height: 60px; object-fit: cover;
-    border-radius: 8px; margin-top: 0.3rem; display: none;
-  }
+/* ── BUTTONS ── */
+.autofill-btn {
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  width: 100%;
+  background: #7c4dff14;
+  border: 1.5px solid #7c4dff66;
+  border-radius: var(--radius-sm);
+  color: var(--accent2);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 0.48rem;
+  margin-top: 0.6rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+.autofill-btn:hover { background: var(--accent-glow); border-color: var(--accent); color: #fff; }
+
+.card-analyse-btn {
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  width: 100%;
+  background: var(--green-dim);
+  border: 1.5px solid var(--green);
+  border-radius: var(--radius-sm);
+  color: var(--green);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  padding: 0.55rem;
+  margin-top: 0.6rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+.card-analyse-btn:hover { background: #00e67628; }
+
+/* ── RESULT ── */
+.card-result {
+  display: none;
+  margin-top: 0.8rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.8rem;
+  animation: fadeUp 0.3s ease;
+}
+.card-result.show { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.cr-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--green);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 0.5rem;
+}
+.cr-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+.cr-chip {
+  display: flex; flex-direction: column; align-items: center;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.38rem 0.6rem;
+  min-width: 48px;
+}
+.cr-chip .ch-label { font-size: 0.5rem; color: var(--text3); margin-bottom: 0.12rem; text-align: center; }
+.cr-chip .ch-value { font-size: 0.95rem; font-weight: 800; font-family: 'Space Mono', monospace; }
+.cr-chip.cr-1x2   .ch-value { color: var(--green); }
+.cr-chip.cr-score .ch-value { color: var(--blue); font-size: 0.82rem; }
+.cr-chip.cr-total .ch-value { color: var(--yellow); }
+.cr-chip.cr-over  .ch-value { color: var(--orange); font-size: 0.78rem; }
+.cr-chip.cr-gg    .ch-value { color: #ce93d8; font-size: 0.78rem; }
+.cr-chip.cr-dc    .ch-value { color: #80deea; font-size: 0.78rem; }
+.cr-chip.cr-rel   .ch-value { color: var(--yellow); font-size: 0.65rem; }
+.cr-chip.cr-form  .ch-value { color: var(--blue); font-size: 0.72rem; }
+
+.cr-conf-badge {
+  font-size: 0.6rem; font-weight: 700;
+  padding: 0.22rem 0.5rem;
+  border-radius: 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  align-self: center;
+  margin-left: auto;
+}
+.cr-conf-badge.high { background: #00e67618; color: var(--green); border: 1px solid var(--green); }
+.cr-conf-badge.med  { background: #ffd74018; color: var(--yellow); border: 1px solid var(--yellow); }
+.cr-conf-badge.low  { background: #ff525218; color: var(--red); border: 1px solid var(--red); }
+
+/* ── ADD MATCH BTN ── */
+.add-match-btn {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  width: 100%;
+  background: none;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  color: var(--text2);
+  font-family: 'Sora', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.9rem;
+  margin-top: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.add-match-btn:hover { color: var(--accent2); border-color: var(--accent); background: var(--accent-dim); }
+
+.error-msg {
+  background: #ff525214;
+  border: 1px solid var(--red);
+  color: var(--red);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 1rem;
+  font-size: 0.78rem;
+  margin-top: 0.6rem;
+  display: none; text-align: center;
+}
+.error-msg.show { display: block; }
+
+footer {
+  text-align: center;
+  margin-top: 2.5rem;
+  font-size: 0.62rem;
+  color: var(--text3);
+  line-height: 1.8;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 0px; }
+  .sidebar { display: none; }
+  .main-content { margin-left: 0; max-width: 100vw; padding: 1rem; }
+  .matches-wrapper { grid-template-columns: 1fr; }
+  .topbar-search { display: none; }
+}
 </style>
 </head>
 <body>
 
-<!-- ─── LOGIN ─── -->
+<!-- ═══════════ LOGIN ═══════════ -->
 <div id="loginScreen">
-  <div class="login-logo">⚡ Boom</div>
-  <div class="login-sub">Bienvenue dans Boom — Paris Virtuels</div>
+  <div class="login-logo">⚡ Safe Boom</div>
+  <div class="login-sub">Plateforme d'analyse — Paris Virtuels Bet261</div>
   <div class="login-card">
     <div class="login-field">
       <label>Mot de passe</label>
       <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
     </div>
-
     <button class="login-btn" id="loginBtn">Se connecter</button>
-    <div class="login-error" id="loginError">⚠️ Mot de passe incorrect. Réessayez.</div>
+    <div class="login-error" id="loginError">⚠️ Mot de passe incorrect.</div>
   </div>
 </div>
 
-<!-- ─── MAIN APP ─── -->
+<!-- ═══════════ MAIN APP ═══════════ -->
 <div id="mainApp">
 
-  <header>
-    <h1>⚡ Boom</h1>
-    <div class="header-right">
-      <span class="badge-pill" id="leagueBadge">English League</span>
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <span class="topbar-logo"><span class="logo-icon">⚡</span> Safe Boom</span>
+    <div class="topbar-search">
+      <input type="text" placeholder="Rechercher un match...">
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-badge" id="leagueBadge">🏴󠁧󠁢󠁥󠁮󠁧󠁿 English</span>
+      <button class="theme-btn" id="themeBtn" title="Changer de thème">🌙</button>
       <button class="logout-btn" id="logoutBtn">Déconnexion</button>
     </div>
-  </header>
-
-  <!-- League Switcher -->
-  <div class="league-selector">
-    <button class="league-btn active-eng" id="btnEng" onclick="switchLeague('eng')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 English League</button>
-    <button class="league-btn" id="btnCaf" onclick="switchLeague('caf')">🌍 Coupe d'Afrique</button>
   </div>
 
-  <!-- Global summary -->
-  <div id="summaryPanel">
-    <div class="summary-header">
-      <span>⚡ Récapitulatif</span>
-      <span class="sum-count" id="sumCount">0 match analysé</span>
-    </div>
-    <div id="summaryRows"></div>
+  <!-- BODY -->
+  <div class="app-body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Navigation</div>
+        <button class="sidebar-item active" id="navMatches">
+          <span class="si-icon">⚽</span> Matchs
+          <span class="si-count" id="matchCountBadge">0</span>
+        </button>
+        <button class="sidebar-item" onclick="document.getElementById('summaryPanel').scrollIntoView({behavior:'smooth'})">
+          <span class="si-icon">📊</span> Récapitulatif
+        </button>
+      </div>
+
+      <hr class="sidebar-divider">
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Ligue</div>
+        <div class="sidebar-league">
+          <button class="league-btn active-eng" id="btnEng" onclick="switchLeague('eng')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 English League</button>
+          <button class="league-btn" id="btnCaf" onclick="switchLeague('caf')">🌍 Coupe d'Afrique</button>
+        </div>
+      </div>
+
+      <hr class="sidebar-divider">
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Actions</div>
+        <button class="sidebar-item" onclick="addMatchCard()">
+          <span class="si-icon">➕</span> Nouveau Match
+        </button>
+        <button class="sidebar-item" onclick="analyzeAll()">
+          <span class="si-icon">⚡</span> Tout Analyser
+        </button>
+      </div>
+
+      <hr class="sidebar-divider">
+
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Créateur</div>
+        <div style="padding: 0.4rem 0.7rem; font-size: 0.68rem; color: var(--text3);">
+          ⚡ Azarya Noel<br>
+          <span style="font-size:0.6rem;">© 2026 Safe Boom</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- Summary -->
+      <div id="summaryPanel">
+        <div class="summary-header">
+          <span>⚡ Récapitulatif des analyses</span>
+          <span class="sum-count" id="sumCount">0 match analysé</span>
+        </div>
+        <div id="summaryRows"></div>
+      </div>
+
+      <!-- Section header -->
+      <div class="section-header">
+        <h2>📋 Matchs en cours</h2>
+        <button class="see-all-btn" onclick="addMatchCard()">+ Ajouter</button>
+      </div>
+
+      <!-- Cards -->
+      <div class="matches-wrapper" id="matchesWrapper"></div>
+
+      <button class="add-match-btn" id="addMatchBtn">＋ Ajouter un Match</button>
+      <div class="error-msg" id="errorMsg"></div>
+
+      <footer>
+        ⚡ Safe Boom — Stratégie de paris sportifs virtuels<br>
+        <strong>© 2026 Azarya Noel</strong> — Tous droits réservés
+      </footer>
+    </main>
   </div>
-
-  <div class="matches-wrapper" id="matchesWrapper"></div>
-
-  <button class="add-match-btn" id="addMatchBtn">＋ Ajouter un Match</button>
-
-  <div class="error-msg" id="errorMsg"></div>
-
-  <footer>
-    ⚡ Boom — Stratégie de paris sportifs virtuels<br>
-    <strong>© 2026 Azarya</strong> — Tous droits réservés
-  </footer>
-
 </div>
 
 <script>
+/* ════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════ */
 const CORRECT_PASSWORD = 'boom261#';
+const GEMINI_API_KEY_HARDCODED = 'AQ.Ab8RN6K634o3dXLpnlH1A4dKcNvEYELhmrXF0lCztmY81oOJXg';
 
-/* ══════════════════════════════════════════════
+/* ════════════════════════════════════════
+   THÈME
+════════════════════════════════════════ */
+const themeBtn = document.getElementById('themeBtn');
+themeBtn.addEventListener('click', () => {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  themeBtn.textContent = isDark ? '🌙' : '☀️';
+});
+
+/* ════════════════════════════════════════
    ÉQUIPES
-══════════════════════════════════════════════ */
+════════════════════════════════════════ */
 const TEAMS_ENG = [
-  { group: "🔵 Grandes équipes",  options: ["Manchester Red","Liverpool","Arsenal","Chelsea","Manchester City","Tottenham"] },
-  { group: "🟡 Moyennes",         options: ["Newcastle","West Ham","Aston Villa","Brighton","Fulham","Crystal Palace"] },
-  { group: "🔴 Plus faibles",     options: ["Bournemouth","Brentford","Wolverhampton","Everton","Nottingham Forest","Ipswich"] },
-  { group: "🟢 Autres",           options: ["Leicester","Southampton","Sunderland","Leeds","Burnley"] },
+  { group: "🔵 Grandes équipes", options: ["Manchester Red","Liverpool","Arsenal","Chelsea","Manchester City","Tottenham"] },
+  { group: "🟡 Moyennes", options: ["Newcastle","West Ham","Aston Villa","Brighton","Fulham","Crystal Palace"] },
+  { group: "🔴 Plus faibles", options: ["Bournemouth","Brentford","Wolverhampton","Everton","Nottingham Forest","Ipswich"] },
+  { group: "🟢 Autres", options: ["Leicester","Southampton","Sunderland","Leeds","Burnley"] },
 ];
-
 const TEAMS_CAF = [
-  { group: "🟥 Équipes fortes",   options: ["Sénégal","Maroc","Algérie","Côte d'Ivoire","Nigeria","Cameroun","Égypte"] },
+  { group: "🟥 Équipes fortes", options: ["Sénégal","Maroc","Algérie","Côte d'Ivoire","Nigeria","Cameroun","Égypte"] },
   { group: "🟧 Équipes moyennes", options: ["Mali","Burkina Faso","Tunisie","RD Congo","Afrique du Sud","Angola","Zambie","Gabon"] },
-  { group: "🟨 Équipes faibles",  options: ["Comores","Ouganda","Tanzanie","Bénin","Botswana","Zimbabwe","Guinée équatoriale","Soudan","Mozambique"] },
+  { group: "🟨 Équipes faibles", options: ["Comores","Ouganda","Tanzanie","Bénin","Botswana","Zimbabwe","Guinée équatoriale","Soudan","Mozambique"] },
 ];
-
-/* Rang max selon la ligue (Premier League = 20, CAN = 32 groupe) */
 const RANK_MAX = { eng: 20, caf: 32 };
-
 let currentLeague = 'eng';
-
 function getTeams() { return currentLeague === 'eng' ? TEAMS_ENG : TEAMS_CAF; }
-
 function buildTeamOptions(selected) {
   return getTeams().map(g =>
     `<optgroup label="${g.group}">${g.options.map(t =>
@@ -804,337 +1080,252 @@ function buildTeamOptions(selected) {
   ).join('');
 }
 
-/* ══════════════════════════════════════════════
+/* ════════════════════════════════════════
    SWITCH LEAGUE
-══════════════════════════════════════════════ */
+════════════════════════════════════════ */
 function switchLeague(league) {
   currentLeague = league;
   document.getElementById('btnEng').className = 'league-btn' + (league==='eng' ? ' active-eng' : '');
   document.getElementById('btnCaf').className = 'league-btn' + (league==='caf' ? ' active-caf' : '');
-  document.getElementById('leagueBadge').textContent = league === 'eng' ? 'English League' : 'Coupe d\'Afrique';
-
-  // Vider les cartes existantes et reconstruire
+  document.getElementById('leagueBadge').textContent = league === 'eng' ? '🏴󠁧󠁢󠁥󠁮󠁧󠁿 English' : '🌍 CAN';
   document.getElementById('matchesWrapper').innerHTML = '';
   Object.keys(results).forEach(k => delete results[k]);
   matchCount = 0;
   updateSummary();
-
-  // Ajouter une carte vide avec la nouvelle ligue
   addMatchCard();
 }
 
-/* ══════════════════════════════════════════════
+/* ════════════════════════════════════════
    ÉTAT
-══════════════════════════════════════════════ */
+════════════════════════════════════════ */
 const results = {};
 let matchCount = 0;
+const scanFiles = {};
 
-/* ══════════════════════════════════════════════
+function updateMatchCountBadge() {
+  document.getElementById('matchCountBadge').textContent = document.querySelectorAll('.match-card').length;
+}
+
+/* ════════════════════════════════════════
    FORME
-══════════════════════════════════════════════ */
+════════════════════════════════════════ */
 function buildFormSlots(cardId, side, defaults) {
   const d = defaults || ['W','W','D','L','W'];
-  return `
-    <div class="form-slots" id="formSlots${side}_${cardId}">
-      ${[1,2,3,4,5].map((n,i) => `
-        <div class="form-slot">
-          <span class="slot-num">J-${n}</span>
-          <select class="form-sel-${side}" data-idx="${i}" onchange="onFormChange(${cardId},'${side}',${i},this)">
-            <option value="W" ${d[i]==='W'?'selected':''}>✔</option>
-            <option value="D" ${d[i]==='D'?'selected':''}>–</option>
-            <option value="L" ${d[i]==='L'?'selected':''}>✘</option>
-          </select>
-        </div>
-      `).join('')}
-    </div>
-  `;
+  return `<div class="form-slots">${[1,2,3,4,5].map((n,i) => `
+    <div class="form-slot">
+      <span class="slot-num">J-${n}</span>
+      <select class="form-sel-${side}" data-idx="${i}" onchange="onFormChange(${cardId},'${side}',${i},this)">
+        <option value="W"${d[i]==='W'?' selected':''}>✔</option>
+        <option value="D"${d[i]==='D'?' selected':''}>–</option>
+        <option value="L"${d[i]==='L'?' selected':''}>✘</option>
+      </select>
+    </div>`).join('')}</div>`;
 }
-
 function colorFormSelect(sel) {
-  sel.className = sel.className.replace(/\bval-[WDL]\b/g, '').trim();
-  sel.classList.add('val-' + sel.value);
+  sel.className = sel.className.replace(/\bval-[WDL]\b/g,'').trim();
+  sel.classList.add('val-'+sel.value);
 }
-
 function onFormChange(cardId, side, idx, sel) {
   colorFormSelect(sel);
   updateFormBar(cardId, side);
-  const card = document.querySelector(`.match-card[data-id="${cardId}"]`);
-  if (card && results[cardId]) analyzeCard(cardId);
+  if (results[cardId]) analyzeCard(cardId);
 }
-
-function formScore(vals) {
-  return vals.reduce((s, v) => s + (v==='W'?3 : v==='D'?1 : 0), 0);
+function formScore(vals) { return vals.reduce((s,v) => s+(v==='W'?3:v==='D'?1:0), 0); }
+function formLabel(sc) {
+  if (sc>=12) return {txt:'Excellente',cls:'great'};
+  if (sc>=8)  return {txt:'Bonne',cls:'good'};
+  if (sc>=5)  return {txt:'Moyenne',cls:'medium'};
+  return            {txt:'Mauvaise',cls:'poor'};
 }
-
-function formLabel(score) {
-  if (score >= 12) return { txt: 'Excellente', cls: 'great' };
-  if (score >= 8)  return { txt: 'Bonne',      cls: 'good'  };
-  if (score >= 5)  return { txt: 'Moyenne',    cls: 'medium'};
-  return                   { txt: 'Mauvaise',  cls: 'poor'  };
-}
-
 function updateFormBar(cardId, side) {
   const card = document.querySelector(`.match-card[data-id="${cardId}"]`);
   if (!card) return;
-  const sels = card.querySelectorAll(`.form-sel-${side}`);
-  const vals = [...sels].map(s => s.value);
-  const sc   = formScore(vals);
-  const lb   = formLabel(sc);
-  const bar  = card.querySelector(`#formBar${side}_${cardId}`);
+  const vals = [...card.querySelectorAll(`.form-sel-${side}`)].map(s=>s.value);
+  const sc = formScore(vals), lb = formLabel(sc);
+  const bar = card.querySelector(`#formBar${side}_${cardId}`);
   if (bar) {
     bar.querySelector('.fsb-val').textContent = `${sc}/15 — ${lb.txt}`;
     bar.querySelector('.fsb-val').className = `fsb-val ${lb.cls}`;
   }
 }
+function getFormVals(card, side) { return [...card.querySelectorAll(`.form-sel-${side}`)].map(s=>s.value); }
 
-function getFormVals(card, side) {
-  const sels = card.querySelectorAll(`.form-sel-${side}`);
-  return [...sels].map(s => s.value);
-}
-
-/* ══════════════════════════════════════════════
-   AUTOFILL — remplit les cotes rapidement
-   selon le type de match détecté (ligue + rang)
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════════
+   AUTOFILL
+════════════════════════════════════════ */
 function autoFillCard(id) {
   const card = document.querySelector(`.match-card[data-id="${id}"]`);
   if (!card) return;
-
-  const rankA = parseInt(card.querySelector('.rankA').value) || 10;
-  const rankB = parseInt(card.querySelector('.rankB').value) || 10;
-  const gap   = Math.abs(rankA - rankB);
-  const favA  = rankA <= rankB;
-
-  // Cotes 1X2 générées selon l'écart de rang
-  let c1, cX, c2;
-  if (gap >= 8) {
-    c1 = favA ? 1.35 : 6.50;  cX = 4.80; c2 = favA ? 6.50 : 1.35;
-  } else if (gap >= 5) {
-    c1 = favA ? 1.65 : 4.20;  cX = 3.90; c2 = favA ? 4.20 : 1.65;
-  } else if (gap >= 3) {
-    c1 = favA ? 2.10 : 3.30;  cX = 3.20; c2 = favA ? 3.30 : 2.10;
-  } else {
-    c1 = 2.60; cX = 3.00; c2 = 2.70;
-  }
-
-  // Marchés Total Buts (Over/Under 2.5 et 1.5)
-  const over25 = gap >= 6 ? 1.70 : gap >= 3 ? 2.10 : 2.60;
-  const under25 = +(7.00 - over25 * 1.5 + Math.random() * 0.3).toFixed(2);
-  const over15  = +(over25 - 0.50).toFixed(2);
-  const under15 = +(under25 + 0.40).toFixed(2);
-
-  // GG / NG
-  const gg = gap <= 3 ? 1.80 : gap <= 6 ? 2.20 : 2.80;
-  const ng  = +(5.50 - gg).toFixed(2);
-
-  // Double chance
-  const dc1x = +(c1 * 0.55).toFixed(2);
-  const dcx2 = +(c2 * 0.55).toFixed(2);
-
-  card.querySelector('.coteA').value  = c1.toFixed(2);
-  card.querySelector('.coteX').value  = cX.toFixed(2);
-  card.querySelector('.coteB').value  = c2.toFixed(2);
+  const rankA = parseInt(card.querySelector('.rankA').value)||10;
+  const rankB = parseInt(card.querySelector('.rankB').value)||10;
+  const gap = Math.abs(rankA-rankB), favA = rankA<=rankB;
+  let c1,cX,c2;
+  if      (gap>=8) { c1=favA?1.35:6.50; cX=4.80; c2=favA?6.50:1.35; }
+  else if (gap>=5) { c1=favA?1.65:4.20; cX=3.90; c2=favA?4.20:1.65; }
+  else if (gap>=3) { c1=favA?2.10:3.30; cX=3.20; c2=favA?3.30:2.10; }
+  else             { c1=2.60; cX=3.00; c2=2.70; }
+  const over25 = gap>=6?1.70:gap>=3?2.10:2.60;
+  const under25 = +(7.00-over25*1.5+Math.random()*0.3).toFixed(2);
+  const over15  = +(over25-0.50).toFixed(2);
+  const under15 = +(under25+0.40).toFixed(2);
+  const gg = gap<=3?1.80:gap<=6?2.20:2.80;
+  const ng  = +(5.50-gg).toFixed(2);
+  const dc1x = +(c1*0.55).toFixed(2), dcx2 = +(c2*0.55).toFixed(2);
+  card.querySelector('.coteA').value   = c1.toFixed(2);
+  card.querySelector('.coteX').value   = cX.toFixed(2);
+  card.querySelector('.coteB').value   = c2.toFixed(2);
   card.querySelector('.over25').value  = over25.toFixed(2);
-  card.querySelector('.under25').value = Math.max(1.30, under25).toFixed(2);
-  card.querySelector('.over15').value  = Math.max(1.10, over15).toFixed(2);
-  card.querySelector('.under15').value = Math.max(1.20, under15).toFixed(2);
+  card.querySelector('.under25').value = Math.max(1.30,under25).toFixed(2);
+  card.querySelector('.over15').value  = Math.max(1.10,over15).toFixed(2);
+  card.querySelector('.under15').value = Math.max(1.20,under15).toFixed(2);
   card.querySelector('.coteGG').value  = gg.toFixed(2);
-  card.querySelector('.coteNG').value  = Math.max(1.30, ng).toFixed(2);
-  card.querySelector('.coteDC1X').value = dc1x.toFixed(2);
-  card.querySelector('.coteDCX2').value = dcx2.toFixed(2);
-
-  // Re-analyser si déjà analysé
+  card.querySelector('.coteNG').value  = Math.max(1.30,ng).toFixed(2);
+  card.querySelector('.coteDC1X').value= dc1x.toFixed(2);
+  card.querySelector('.coteDCX2').value= dcx2.toFixed(2);
   if (results[id]) analyzeCard(id);
 }
 
-/* ══════════════════════════════════════════════
+/* ════════════════════════════════════════
    CARTE MATCH
-══════════════════════════════════════════════ */
-function addMatchCard(teamA='', teamB='', time='07:00', rankA=1, rankB=10,
-                      formA=null, formB=null) {
+════════════════════════════════════════ */
+function addMatchCard(teamA='', teamB='', time='07:00', rankA=1, rankB=10, formA=null, formB=null) {
   matchCount++;
   const id = matchCount;
-  const fA = formA || ['W','W','D','W','W'];
-  const fB = formB || ['L','W','D','L','W'];
+  const fA = formA||['W','W','D','W','W'];
+  const fB = formB||['L','W','D','L','W'];
   const rMax = RANK_MAX[currentLeague];
 
   const card = document.createElement('div');
   card.className = 'match-card';
   card.dataset.id = id;
   card.innerHTML = `
-    <div class="card-header">
-      <span class="match-label">Match ${id}</span>
+    <!-- Card thumbnail header -->
+    <div class="card-thumb">
+      <div class="card-thumb-left">
+        <div class="card-num-badge">${id}</div>
+        <span class="match-label">Match ${id}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <span class="match-time-badge" id="timeBadge_${id}">${time}</span>
+        <button class="remove-btn" onclick="removeCard(${id})" title="Supprimer">✕</button>
+      </div>
     </div>
-    <button class="remove-btn" onclick="removeCard(${id})" title="Supprimer">✕</button>
 
-    <!-- SCANNER ZONE -->
-    <div class="scanner-zone">
-      <div class="scanner-title">📷 Scanner les captures Bet261</div>
-      <div class="scanner-grid">
-        <div class="scan-upload-box" id="scanBoxOdds_${id}">
-          <input type="file" accept="image/*" onchange="onScanFile(${id},'odds',this)">
-          <span class="scan-icon">🎯</span>
-          <span class="scan-label">Capture<br>des Cotes</span>
-          <span class="scan-sub">1X2 · Over · GG</span>
-          <img class="thumb-preview" id="thumbOdds_${id}">
+    <div class="card-body">
+
+      <!-- SCANNER -->
+      <div class="scanner-zone">
+        <div class="scanner-title">📷 Scanner captures Bet261</div>
+        <div class="scanner-grid">
+          <div class="scan-upload-box" id="scanBoxOdds_${id}">
+            <input type="file" accept="image/*" onchange="onScanFile(${id},'odds',this)">
+            <span class="scan-icon">🎯</span>
+            <span class="scan-label">Cotes<br>1X2·Over·GG</span>
+            <img class="thumb-preview" id="thumbOdds_${id}">
+          </div>
+          <div class="scan-upload-box" id="scanBoxRank_${id}">
+            <input type="file" accept="image/*" onchange="onScanFile(${id},'rank',this)">
+            <span class="scan-icon">📊</span>
+            <span class="scan-label">Classement<br>Rang·Pts·Forme</span>
+            <img class="thumb-preview" id="thumbRank_${id}">
+          </div>
         </div>
-        <div class="scan-upload-box" id="scanBoxRank_${id}">
-          <input type="file" accept="image/*" onchange="onScanFile(${id},'rank',this)">
-          <span class="scan-icon">📊</span>
-          <span class="scan-label">Capture<br>Classement</span>
-          <span class="scan-sub">Rang · Pts · Forme</span>
-          <img class="thumb-preview" id="thumbRank_${id}">
+        <button class="scan-btn" id="scanBtn_${id}" onclick="runScan(${id})" disabled>
+          🔍 Analyser avec l'IA
+        </button>
+        <div class="scan-status" id="scanStatus_${id}"></div>
+      </div>
+
+      <!-- HEURE -->
+      <div class="sec-title">🕐 Heure du match</div>
+      <div class="time-row">
+        <input type="time" class="match-time" value="${time}" onchange="document.getElementById('timeBadge_${id}').textContent=this.value">
+      </div>
+
+      <!-- ÉQUIPES -->
+      <div class="sec-title">🏆 Équipes</div>
+      <div class="teams-row">
+        <div class="team-col"><label>Équipe 1</label><select class="teamA">${buildTeamOptions(teamA)}</select></div>
+        <div class="team-col"><label>Équipe 2</label><select class="teamB">${buildTeamOptions(teamB)}</select></div>
+      </div>
+
+      <!-- CLASSEMENT -->
+      <div class="sec-title">📊 Classement</div>
+      <div class="rank-row">
+        <div class="rank-col"><label>Rang Équipe 1</label><input type="number" class="rankA" value="${rankA}" min="1" max="${rMax}"></div>
+        <div class="rank-col"><label>Rang Équipe 2</label><input type="number" class="rankB" value="${rankB}" min="1" max="${rMax}"></div>
+      </div>
+      <div class="rank-gap-indicator" id="rankGap_${id}">
+        <span>Écart :</span><span class="gap-value">—</span><span>places</span>
+      </div>
+
+      <!-- FORME -->
+      <div class="sec-title">📈 Forme récente (5 matchs)</div>
+      <div class="form-section">
+        <div class="form-teams-row">
+          <div>
+            <span class="form-team-label">Équipe 1</span>
+            ${buildFormSlots(id,'A',fA)}
+            <div class="form-score-bar" id="formBarA_${id}"><span style="font-size:0.58rem;color:var(--text2)">Forme :</span><span class="fsb-val great">—</span></div>
+          </div>
+          <div>
+            <span class="form-team-label">Équipe 2</span>
+            ${buildFormSlots(id,'B',fB)}
+            <div class="form-score-bar" id="formBarB_${id}"><span style="font-size:0.58rem;color:var(--text2)">Forme :</span><span class="fsb-val great">—</span></div>
+          </div>
         </div>
       </div>
-      <button class="scan-btn" id="scanBtn_${id}" onclick="runScan(${id})" disabled>
-        🔍 Analyser les captures avec l'IA
+
+      <!-- COTES 1X2 -->
+      <div class="sec-title">💰 Cotes 1X2</div>
+      <div class="odds-row">
+        <div class="odd-box"><label>Cote 1</label><input type="number" class="coteA" placeholder="1.52" step="0.01" min="1.01"></div>
+        <div class="odd-box"><label>Cote X</label><input type="number" class="coteX" placeholder="4.38" step="0.01" min="1.01"></div>
+        <div class="odd-box"><label>Cote 2</label><input type="number" class="coteB" placeholder="5.78" step="0.01" min="1.01"></div>
+      </div>
+
+      <!-- OVER/UNDER -->
+      <div class="sec-title">📉 Over / Under</div>
+      <div class="extra-markets-grid">
+        <div class="extra-box"><label>Over 2.5</label><input type="number" class="over25" placeholder="2.10" step="0.01" min="1.01"></div>
+        <div class="extra-box"><label>Under 2.5</label><input type="number" class="under25" placeholder="1.72" step="0.01" min="1.01"></div>
+        <div class="extra-box"><label>Over 1.5</label><input type="number" class="over15" placeholder="1.45" step="0.01" min="1.01"></div>
+        <div class="extra-box"><label>Under 1.5</label><input type="number" class="under15" placeholder="2.60" step="0.01" min="1.01"></div>
+      </div>
+
+      <!-- GG / DC -->
+      <div class="sec-title">⚽ GG / NG & Double Chance</div>
+      <div class="extra-markets-grid">
+        <div class="extra-box"><label>GG</label><input type="number" class="coteGG" placeholder="1.80" step="0.01" min="1.01"></div>
+        <div class="extra-box"><label>NG</label><input type="number" class="coteNG" placeholder="1.95" step="0.01" min="1.01"></div>
+        <div class="extra-box"><label>DC 1X</label><input type="number" class="coteDC1X" placeholder="1.22" step="0.01" min="1.01"></div>
+        <div class="extra-box"><label>DC X2</label><input type="number" class="coteDCX2" placeholder="1.55" step="0.01" min="1.01"></div>
+      </div>
+
+      <button class="autofill-btn" onclick="autoFillCard(${id})">⚡ Remplissage automatique</button>
+      <button class="card-analyse-btn" onclick="analyzeCard(${id})">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Analyser ce match
       </button>
-      <div class="scan-status" id="scanStatus_${id}"></div>
-    </div>
 
-    <div class="time-row">
-      <label>🕐 Heure</label>
-      <input type="time" class="match-time" value="${time}">
-    </div>
-
-    <div class="section-title">🏆 Équipes (1X2)</div>
-    <div class="teams-row">
-      <div class="team-col">
-        <label>Équipe 1</label>
-        <select class="teamA">${buildTeamOptions(teamA)}</select>
+      <div class="card-result" id="cardResult_${id}">
+        <div class="cr-label">✅ Résultat d'analyse</div>
+        <div class="cr-row" id="crRow_${id}"></div>
       </div>
-      <div class="team-col">
-        <label>Équipe 2</label>
-        <select class="teamB">${buildTeamOptions(teamB)}</select>
-      </div>
-    </div>
-
-    <div class="section-title">📊 Classement actuel</div>
-    <div class="rank-row">
-      <div class="rank-col">
-        <label>Rang Équipe 1</label>
-        <input type="number" class="rankA" value="${rankA}" min="1" max="${rMax}" placeholder="1">
-      </div>
-      <div class="rank-col">
-        <label>Rang Équipe 2</label>
-        <input type="number" class="rankB" value="${rankB}" min="1" max="${rMax}" placeholder="10">
-      </div>
-    </div>
-    <div class="rank-gap-indicator" id="rankGap_${id}">
-      <span>Écart :</span>
-      <span class="gap-value">—</span>
-      <span>places</span>
-    </div>
-
-    <div class="section-title">📈 Forme récente (5 derniers matchs)</div>
-    <div class="form-section">
-      <div class="form-teams-row">
-        <div class="form-team-col">
-          <span class="form-team-label">Équipe 1</span>
-          ${buildFormSlots(id, 'A', fA)}
-          <div class="form-score-bar" id="formBarA_${id}">
-            <span class="fsb-label">Forme :</span>
-            <span class="fsb-val great">—</span>
-          </div>
-        </div>
-        <div class="form-team-col">
-          <span class="form-team-label">Équipe 2</span>
-          ${buildFormSlots(id, 'B', fB)}
-          <div class="form-score-bar" id="formBarB_${id}">
-            <span class="fsb-label">Forme :</span>
-            <span class="fsb-val great">—</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-title">💰 Cotes 1X2 (Bet261)</div>
-    <div class="odds-row">
-      <div class="odd-box">
-        <label>Cote 1</label>
-        <input type="number" class="coteA" placeholder="1.52" step="0.01" min="1.01">
-      </div>
-      <div class="odd-box">
-        <label>Cote X</label>
-        <input type="number" class="coteX" placeholder="4.38" step="0.01" min="1.01">
-      </div>
-      <div class="odd-box">
-        <label>Cote 2</label>
-        <input type="number" class="coteB" placeholder="5.78" step="0.01" min="1.01">
-      </div>
-    </div>
-
-    <div class="section-title extra-markets">📉 Total Buts — Over/Under (Bet261)</div>
-    <div class="extra-markets-grid">
-      <div class="extra-box">
-        <label>Over 2.5</label>
-        <input type="number" class="over25" placeholder="2.10" step="0.01" min="1.01">
-      </div>
-      <div class="extra-box">
-        <label>Under 2.5</label>
-        <input type="number" class="under25" placeholder="1.72" step="0.01" min="1.01">
-      </div>
-      <div class="extra-box">
-        <label>Over 1.5</label>
-        <input type="number" class="over15" placeholder="1.45" step="0.01" min="1.01">
-      </div>
-      <div class="extra-box">
-        <label>Under 1.5</label>
-        <input type="number" class="under15" placeholder="2.60" step="0.01" min="1.01">
-      </div>
-    </div>
-
-    <div class="section-title">⚽ GG / NG & Double Chance (Bet261)</div>
-    <div class="extra-markets-grid">
-      <div class="extra-box">
-        <label>GG (les deux marquent)</label>
-        <input type="number" class="coteGG" placeholder="1.80" step="0.01" min="1.01">
-      </div>
-      <div class="extra-box">
-        <label>NG (non)</label>
-        <input type="number" class="coteNG" placeholder="1.95" step="0.01" min="1.01">
-      </div>
-      <div class="extra-box">
-        <label>Double chance 1X</label>
-        <input type="number" class="coteDC1X" placeholder="1.22" step="0.01" min="1.01">
-      </div>
-      <div class="extra-box">
-        <label>Double chance X2</label>
-        <input type="number" class="coteDCX2" placeholder="1.55" step="0.01" min="1.01">
-      </div>
-    </div>
-
-    <!-- AUTOFILL -->
-    <button class="autofill-btn" onclick="autoFillCard(${id})">
-      ⚡ Remplissage automatique des cotes
-    </button>
-
-    <button class="card-analyse-btn" onclick="analyzeCard(${id})">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      Analyser ce match
-    </button>
-
-    <div class="card-result" id="cardResult_${id}">
-      <div class="cr-label">✅ Résultat</div>
-      <div class="cr-row" id="crRow_${id}"></div>
     </div>
   `;
   document.getElementById('matchesWrapper').appendChild(card);
 
   card.querySelectorAll('.form-sel-A, .form-sel-B').forEach(colorFormSelect);
-  updateFormBar(id, 'A');
-  updateFormBar(id, 'B');
+  updateFormBar(id,'A'); updateFormBar(id,'B');
 
-  const rA = card.querySelector('.rankA');
-  const rB = card.querySelector('.rankB');
+  const rA = card.querySelector('.rankA'), rB = card.querySelector('.rankB');
   function updateGap() {
-    const a = parseInt(rA.value), b = parseInt(rB.value);
-    const gapEl = document.getElementById(`rankGap_${id}`);
-    const valEl = gapEl.querySelector('.gap-value');
-    if (!isNaN(a) && !isNaN(b)) {
-      const gap = Math.abs(b - a);
-      valEl.textContent = gap;
-      valEl.className = 'gap-value ' + (gap >= 7 ? 'big' : gap >= 4 ? 'medium' : 'small');
+    const a=parseInt(rA.value), b=parseInt(rB.value);
+    if (!isNaN(a)&&!isNaN(b)) {
+      const g=Math.abs(b-a), el=document.getElementById(`rankGap_${id}`).querySelector('.gap-value');
+      el.textContent=g;
+      el.className='gap-value '+(g>=7?'big':g>=4?'medium':'small');
     }
   }
   rA.addEventListener('input', updateGap);
@@ -1144,541 +1335,291 @@ function addMatchCard(teamA='', teamB='', time='07:00', rankA=1, rankB=10,
   card.querySelectorAll('input, select').forEach(el => {
     el.addEventListener('change', () => { if (results[id]) analyzeCard(id); });
   });
+
+  updateMatchCountBadge();
 }
 
 function removeCard(id) {
   const card = document.querySelector(`.match-card[data-id="${id}"]`);
   if (card) card.remove();
   delete results[id];
-  document.querySelectorAll('.match-card').forEach((c, i) => {
-    c.querySelector('.match-label').textContent = `Match ${i + 1}`;
+  document.querySelectorAll('.match-card').forEach((c,i) => {
+    c.querySelector('.match-label').textContent = `Match ${i+1}`;
+    c.querySelector('.card-num-badge').textContent = i+1;
   });
   updateSummary();
+  updateMatchCountBadge();
 }
 
-function rankClass(rank) {
-  if (rank <= 6)  return 'top';
-  if (rank <= 13) return 'mid';
-  return 'bot';
-}
-
-/* ══════════════════════════════════════════════
-   ALGORITHME DE FIABILITÉ
-══════════════════════════════════════════════ */
-function getReliability(coteFav, rankA, rankB, outcome, formValsA, formValsB) {
-  const gap      = Math.abs(rankA - rankB);
-  const oddsPickA  = outcome === '1';
-  const rankPickA  = rankA <= rankB;
-  const rankConfirms = (oddsPickA === rankPickA);
-
+/* ════════════════════════════════════════
+   ALGORITHME FIABILITÉ
+════════════════════════════════════════ */
+function getReliability(coteFav, rankA, rankB, outcome, fA, fB) {
+  const gap=Math.abs(rankA-rankB), oddsPickA=outcome==='1', rankPickA=rankA<=rankB;
+  const rankConfirms=oddsPickA===rankPickA;
   let score;
-  if      (coteFav < 1.5)  score = 5;
-  else if (coteFav < 1.9)  score = 4;
-  else if (coteFav < 2.3)  score = 3;
-  else                     score = 2;
-
-  if (rankConfirms) {
-    if (gap >= 7)      score = Math.min(score + 1, 5);
-    else if (gap >= 4) { /* neutre */ }
-    else               score = Math.max(score - 1, 1);
-  } else {
-    if (gap >= 7)  score = Math.max(score - 2, 1);
-    else           score = Math.max(score - 1, 1);
-  }
-
-  const fsA = formScore(formValsA);
-  const fsB = formScore(formValsB);
-  const formDiff = fsA - fsB;
-
-  const formConfirms = oddsPickA ? (formDiff > 0) : (formDiff < 0);
-  const formNeutral  = Math.abs(formDiff) <= 2;
-
+  if      (coteFav<1.5) score=5;
+  else if (coteFav<1.9) score=4;
+  else if (coteFav<2.3) score=3;
+  else                  score=2;
+  if (rankConfirms) { if (gap>=7) score=Math.min(score+1,5); else if (gap<4) score=Math.max(score-1,1); }
+  else              { if (gap>=7) score=Math.max(score-2,1); else score=Math.max(score-1,1); }
+  const fsA=formScore(fA), fsB=formScore(fB), fd=fsA-fsB;
+  const formConfirms=oddsPickA?(fd>0):(fd<0), formNeutral=Math.abs(fd)<=2;
   if (!formNeutral) {
-    if (formConfirms) {
-      if (Math.abs(formDiff) >= 6)      score = Math.min(score + 1, 5);
-      else if (Math.abs(formDiff) >= 3) { /* léger boost */ }
-    } else {
-      if (Math.abs(formDiff) >= 6)      score = Math.max(score - 2, 1);
-      else if (Math.abs(formDiff) >= 3) score = Math.max(score - 1, 1);
-    }
+    if (formConfirms) { if (Math.abs(fd)>=6) score=Math.min(score+1,5); }
+    else { if (Math.abs(fd)>=6) score=Math.max(score-2,1); else if (Math.abs(fd)>=3) score=Math.max(score-1,1); }
   }
-
-  const labels = ['', '★☆☆☆☆', '★★☆☆☆', '★★★☆☆', '★★★★☆', '★★★★★'];
-  const texts  = ['', 'Très risqué', 'Risqué', 'Moyen', 'Fort', 'Très fort'];
-
-  return { stars: labels[score], label: texts[score], score,
-           rankConfirms, gap,
-           fsA, fsB, formDiff, formConfirms, formNeutral };
+  const labels=['','★☆☆☆☆','★★☆☆☆','★★★☆☆','★★★★☆','★★★★★'];
+  const texts =['','Très risqué','Risqué','Moyen','Fort','Très fort'];
+  return {stars:labels[score],label:texts[score],score,rankConfirms,gap,fsA,fsB,formDiff:fd,formConfirms,formNeutral};
 }
-
 function rankConfTag(rel) {
-  if (rel.score >= 4 && rel.rankConfirms && rel.formConfirms) return { cls: 'high', txt: '✔ Confirmé' };
-  if (rel.score <= 2 || (!rel.rankConfirms && !rel.formConfirms)) return { cls: 'low', txt: '✘ Divergent' };
-  return { cls: 'med', txt: '~ Neutre' };
+  if (rel.score>=4&&rel.rankConfirms&&rel.formConfirms) return {cls:'high',txt:'✔ Confirmé'};
+  if (rel.score<=2||(!rel.rankConfirms&&!rel.formConfirms)) return {cls:'low',txt:'✘ Divergent'};
+  return {cls:'med',txt:'~ Neutre'};
 }
 
-/* ══════════════════════════════════════════════
-   ANALYSE MATCH — inclut les marchés Bet261
-══════════════════════════════════════════════ */
+/* ════════════════════════════════════════
+   ANALYSE
+════════════════════════════════════════ */
 function analyzeCard(id) {
   const card = document.querySelector(`.match-card[data-id="${id}"]`);
   if (!card) return;
+  const coteA=parseFloat(card.querySelector('.coteA').value);
+  const coteB=parseFloat(card.querySelector('.coteB').value);
+  const teamA=card.querySelector('.teamA').value;
+  const teamB=card.querySelector('.teamB').value;
+  const rankA=parseInt(card.querySelector('.rankA').value)||10;
+  const rankB=parseInt(card.querySelector('.rankB').value)||10;
+  const time=card.querySelector('.match-time').value;
+  const fA=getFormVals(card,'A'), fB=getFormVals(card,'B');
+  const over25=parseFloat(card.querySelector('.over25').value)||null;
+  const under25=parseFloat(card.querySelector('.under25').value)||null;
+  const over15=parseFloat(card.querySelector('.over15').value)||null;
+  const under15=parseFloat(card.querySelector('.under15').value)||null;
+  const coteGG=parseFloat(card.querySelector('.coteGG').value)||null;
+  const coteNG=parseFloat(card.querySelector('.coteNG').value)||null;
+  const dc1x=parseFloat(card.querySelector('.coteDC1X').value)||null;
+  const dcx2=parseFloat(card.querySelector('.coteDCX2').value)||null;
 
-  const coteA  = parseFloat(card.querySelector('.coteA').value);
-  const coteB  = parseFloat(card.querySelector('.coteB').value);
-  const teamA  = card.querySelector('.teamA').value;
-  const teamB  = card.querySelector('.teamB').value;
-  const rankA  = parseInt(card.querySelector('.rankA').value) || 10;
-  const rankB  = parseInt(card.querySelector('.rankB').value) || 10;
-  const time   = card.querySelector('.match-time').value;
-  const formValsA = getFormVals(card, 'A');
-  const formValsB = getFormVals(card, 'B');
-
-  // Marchés supplémentaires
-  const over25  = parseFloat(card.querySelector('.over25').value)  || null;
-  const under25 = parseFloat(card.querySelector('.under25').value) || null;
-  const over15  = parseFloat(card.querySelector('.over15').value)  || null;
-  const under15 = parseFloat(card.querySelector('.under15').value) || null;
-  const coteGG  = parseFloat(card.querySelector('.coteGG').value)  || null;
-  const coteNG  = parseFloat(card.querySelector('.coteNG').value)  || null;
-  const dc1x    = parseFloat(card.querySelector('.coteDC1X').value) || null;
-  const dcx2    = parseFloat(card.querySelector('.coteDCX2').value) || null;
-
-  const errorEl = document.getElementById('errorMsg');
-  if (isNaN(coteA) || isNaN(coteB) || coteA <= 1 || coteB <= 1) {
-    errorEl.textContent = `⚠️ Match ${id} : veuillez remplir les cotes 1X2 (valeur > 1).`;
-    errorEl.classList.add('show');
-    setTimeout(() => errorEl.classList.remove('show'), 3000);
+  if (isNaN(coteA)||isNaN(coteB)||coteA<=1||coteB<=1) {
+    const el=document.getElementById('errorMsg');
+    el.textContent=`⚠️ Match ${id} : remplissez les cotes 1X2 (> 1).`;
+    el.classList.add('show');
+    setTimeout(()=>el.classList.remove('show'),3000);
     return;
   }
-  errorEl.classList.remove('show');
+  document.getElementById('errorMsg').classList.remove('show');
 
-  const coteFav = Math.min(coteA, coteB);
-  let outcome, score, total;
-  if      (coteFav < 1.50)  { outcome = coteA <= coteB ? '1' : '2'; score = '2-0'; total = 2; }
-  else if (coteFav <= 2.20) { outcome = coteA <= coteB ? '1' : '2'; score = '2-1'; total = 3; }
-  else                      { outcome = 'X'; score = '2-2'; total = 4; }
+  const coteFav=Math.min(coteA,coteB);
+  let outcome,score,total;
+  if      (coteFav<=1.20) { outcome=coteA<=coteB?'1':'2'; score='4-0'; total=2; }
+  else if (coteFav<1.50)  { outcome=coteA<=coteB?'1':'2'; score='2-0'; total=2; }
+  else if (coteFav<=2.20) { outcome=coteA<=coteB?'1':'2'; score='2-1'; total=3; }
+  else                    { outcome='X'; score='2-2'; total=4; }
 
-  const rel  = getReliability(coteFav, rankA, rankB, outcome, formValsA, formValsB);
-  const conf = rankConfTag(rel);
+  const rel=getReliability(coteFav,rankA,rankB,outcome,fA,fB);
+  const conf=rankConfTag(rel);
+  const gapLabel=rel.gap>=7?'↑↑ Grand écart':rel.gap>=4?'→ Modéré':'≈ Proches';
+  const recGG=coteGG?(coteGG<2.00?'✅ GG':'❌ GG'):null;
+  const recDC=(dc1x&&dcx2)?(dc1x<=dcx2?`✅ DC 1X (${dc1x})`:`✅ DC X2 (${dcx2})`):null;
+  let overRec='—';
+  if (total<=2) overRec='Under 2.5'; else if (total===3) overRec='Over 2.5'; else overRec='Over 2.5 ⚠';
 
-  const gapLabel  = rel.gap >= 7 ? '↑↑ Grand écart' : rel.gap >= 4 ? '→ Modéré' : '≈ Proches';
-  const formSummary = `${rel.fsA}/15 vs ${rel.fsB}/15`;
+  results[id]={id,teamA,teamB,time,outcome,score,total,rel,conf,rankA,rankB,overRec};
 
-  // ── Pronostics marchés extras ──
-  const recOver25  = over25  ? (over25  < 2.20 ? '✅ Over 2.5'  : '❌ Over 2.5')  : null;
-  const recUnder25 = under25 ? (under25 < 2.20 ? '✅ Under 2.5' : '❌ Under 2.5') : null;
-  const recOver15  = over15  ? (over15  < 1.70 ? '✅ Over 1.5'  : '❌ Over 1.5')  : null;
-  const recUnder15 = under15 ? (under15 < 2.00 ? '✅ Under 1.5' : '❌ Under 1.5') : null;
-  const recGG      = coteGG  ? (coteGG  < 2.00 ? '✅ GG'        : '❌ GG')        : null;
-  const recDC      = (dc1x && dcx2) ? (dc1x <= dcx2 ? `✅ DC 1X (${dc1x})` : `✅ DC X2 (${dcx2})`) : null;
-
-  // Quel Over/Under recommander selon le score prévu
-  let overRec = '—';
-  if (total <= 2)      overRec = 'Under 2.5';
-  else if (total === 3) overRec = 'Over 2.5';
-  else                  overRec = 'Over 2.5 ⚠';
-
-  results[id] = { id, teamA, teamB, time, outcome, score, total, rel, conf, rankA, rankB, overRec };
-
-  const crRow = document.getElementById(`crRow_${id}`);
-  crRow.innerHTML = `
-    <div class="cr-chip cr-1x2">
-      <span class="ch-label">1X2</span>
-      <span class="ch-value">${outcome}</span>
-    </div>
-    <div class="cr-chip cr-score">
-      <span class="ch-label">Score</span>
-      <span class="ch-value">${score}</span>
-    </div>
-    <div class="cr-chip cr-total">
-      <span class="ch-label">Total buts</span>
-      <span class="ch-value">${total}</span>
-    </div>
-    <div class="cr-chip cr-over">
-      <span class="ch-label">Conseil Over/Under</span>
-      <span class="ch-value">${overRec}</span>
-    </div>
-    ${recGG ? `<div class="cr-chip cr-gg"><span class="ch-label">GG/NG</span><span class="ch-value">${recGG}</span></div>` : ''}
-    ${recDC ? `<div class="cr-chip cr-dc"><span class="ch-label">Double Chance</span><span class="ch-value">${recDC}</span></div>` : ''}
-    <div class="cr-chip cr-rel">
-      <span class="ch-label">#${rankA} vs #${rankB} · ${gapLabel}</span>
-      <span class="ch-value">${rel.stars}</span>
-    </div>
-    <div class="cr-chip cr-form">
-      <span class="ch-label">Forme</span>
-      <span class="ch-value">${formSummary}</span>
-    </div>
+  document.getElementById(`crRow_${id}`).innerHTML=`
+    <div class="cr-chip cr-1x2"><span class="ch-label">1X2</span><span class="ch-value">${outcome}</span></div>
+    <div class="cr-chip cr-score"><span class="ch-label">Score</span><span class="ch-value">${score}</span></div>
+    <div class="cr-chip cr-total"><span class="ch-label">Buts</span><span class="ch-value">${total}</span></div>
+    <div class="cr-chip cr-over"><span class="ch-label">Over/Under</span><span class="ch-value">${overRec}</span></div>
+    ${recGG?`<div class="cr-chip cr-gg"><span class="ch-label">GG/NG</span><span class="ch-value">${recGG}</span></div>`:''}
+    ${recDC?`<div class="cr-chip cr-dc"><span class="ch-label">DC</span><span class="ch-value">${recDC}</span></div>`:''}
+    <div class="cr-chip cr-rel"><span class="ch-label">#${rankA} vs #${rankB} · ${gapLabel}</span><span class="ch-value">${rel.stars}</span></div>
+    <div class="cr-chip cr-form"><span class="ch-label">Forme</span><span class="ch-value">${rel.fsA}/15 vs ${rel.fsB}/15</span></div>
     <span class="cr-conf-badge ${conf.cls}">${conf.txt}</span>
   `;
-
   document.getElementById(`cardResult_${id}`).classList.add('show');
   updateSummary();
 }
 
-/* ══════════════════════════════════════════════
+function analyzeAll() {
+  document.querySelectorAll('.match-card').forEach(c => analyzeCard(parseInt(c.dataset.id)));
+}
+
+/* ════════════════════════════════════════
    RÉCAPITULATIF
-══════════════════════════════════════════════ */
+════════════════════════════════════════ */
 function updateSummary() {
-  const panel = document.getElementById('summaryPanel');
-  const rows  = document.getElementById('summaryRows');
-  const count = document.getElementById('sumCount');
-
-  const keys = Object.keys(results);
-  if (keys.length === 0) { panel.classList.remove('show'); return; }
-
+  const panel=document.getElementById('summaryPanel');
+  const keys=Object.keys(results);
+  if (!keys.length) { panel.classList.remove('show'); return; }
   panel.classList.add('show');
-  const n = keys.length;
-  count.textContent = `${n} match${n > 1 ? 's' : ''} analysé${n > 1 ? 's' : ''}`;
-
-  rows.innerHTML = keys.map((id, i) => {
-    const r = results[id];
-    return `
-      <div class="sum-row">
-        <span class="sum-num">${i+1}</span>
-        <span class="sum-teams">${r.teamA} vs ${r.teamB}</span>
-        <span class="sum-out">${r.outcome}</span>
-        <span class="sum-score">${r.score}</span>
-        <span class="sum-over">${r.overRec}</span>
-        <span class="sum-stars">${r.rel.stars}</span>
-      </div>
-    `;
+  document.getElementById('sumCount').textContent=`${keys.length} match${keys.length>1?'s':''} analysé${keys.length>1?'s':''}`;
+  document.getElementById('summaryRows').innerHTML=keys.map((id,i)=>{
+    const r=results[id];
+    return `<div class="sum-row">
+      <span class="sum-num">${i+1}</span>
+      <span class="sum-teams">${r.teamA} vs ${r.teamB}</span>
+      <span class="sum-out">${r.outcome}</span>
+      <span class="sum-score">${r.score}</span>
+      <span class="sum-over">${r.overRec}</span>
+      <span class="sum-stars">${r.rel.stars}</span>
+    </div>`;
   }).join('');
 }
 
-/* ══════════════════════════════════════════════
+/* ════════════════════════════════════════
    AUTH
-══════════════════════════════════════════════ */
-const GEMINI_API_KEY_HARDCODED = 'AQ.Ab8RN6K634o3dXLpnlH1A4dKcNvEYELhmrXF0lCztmY81oOJXg';
-
+════════════════════════════════════════ */
 function doLogin() {
-  const pwd    = document.getElementById('loginPassword').value;
-  const err    = document.getElementById('loginError');
-  if (pwd === CORRECT_PASSWORD) {
-    window.GEMINI_API_KEY = GEMINI_API_KEY_HARDCODED;
-    document.getElementById('loginScreen').style.display = 'none';
+  const pwd=document.getElementById('loginPassword').value;
+  if (pwd===CORRECT_PASSWORD) {
+    window.GEMINI_API_KEY=GEMINI_API_KEY_HARDCODED;
+    document.getElementById('loginScreen').style.display='none';
     document.getElementById('mainApp').classList.add('show');
-    addMatchCard('Manchester Red', 'Sunderland', '07:00', 8, 19,
-                 ['W','W','D','W','W'], ['L','L','D','L','W']);
+    addMatchCard('Manchester Red','Sunderland','07:00',8,19,['W','W','D','W','W'],['L','L','D','L','W']);
   } else {
-    err.classList.add('show');
-    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginError').classList.add('show');
+    document.getElementById('loginPassword').value='';
     document.getElementById('loginPassword').focus();
   }
 }
-
 document.getElementById('loginBtn').addEventListener('click', doLogin);
-document.getElementById('loginPassword').addEventListener('keypress', e => {
-  if (e.key === 'Enter') doLogin();
-});
+document.getElementById('loginPassword').addEventListener('keypress', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('addMatchBtn').addEventListener('click', ()=>addMatchCard());
 
-
-document.getElementById('logoutBtn').addEventListener('click', () => {
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
   document.getElementById('mainApp').classList.remove('show');
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginPassword').value='';
   document.getElementById('loginError').classList.remove('show');
-  window.GEMINI_API_KEY = GEMINI_API_KEY_HARDCODED;
-  document.getElementById('matchesWrapper').innerHTML = '';
+  document.getElementById('matchesWrapper').innerHTML='';
   document.getElementById('summaryPanel').classList.remove('show');
-  document.getElementById('summaryRows').innerHTML = '';
-  Object.keys(results).forEach(k => delete results[k]);
-  matchCount = 0;
-  currentLeague = 'eng';
-  document.getElementById('btnEng').className = 'league-btn active-eng';
-  document.getElementById('btnCaf').className = 'league-btn';
-  document.getElementById('leagueBadge').textContent = 'English League';
+  Object.keys(results).forEach(k=>delete results[k]);
+  matchCount=0; currentLeague='eng';
+  document.getElementById('btnEng').className='league-btn active-eng';
+  document.getElementById('btnCaf').className='league-btn';
+  document.getElementById('leagueBadge').textContent='🏴󠁧󠁢󠁥󠁮󠁧󠁿 English';
+  updateMatchCountBadge();
 });
 
-document.getElementById('addMatchBtn').addEventListener('click', () => addMatchCard());
-
-/* ══════════════════════════════════════════════
-   SCANNER — Analyse captures Bet261 via Claude Vision
-══════════════════════════════════════════════ */
-const scanFiles = {}; // { cardId: { odds: File|null, rank: File|null } }
-
+/* ════════════════════════════════════════
+   SCANNER
+════════════════════════════════════════ */
 function onScanFile(id, type, input) {
   if (!input.files[0]) return;
-  if (!scanFiles[id]) scanFiles[id] = { odds: null, rank: null };
-  scanFiles[id][type] = input.files[0];
-
-  // Afficher miniature
-  const thumbId = type === 'odds' ? `thumbOdds_${id}` : `thumbRank_${id}`;
-  const boxId   = type === 'odds' ? `scanBoxOdds_${id}` : `scanBoxRank_${id}`;
-  const thumb = document.getElementById(thumbId);
-  const box   = document.getElementById(boxId);
-  const url = URL.createObjectURL(input.files[0]);
-  thumb.src = url;
-  thumb.style.display = 'block';
+  if (!scanFiles[id]) scanFiles[id]={odds:null,rank:null};
+  scanFiles[id][type]=input.files[0];
+  const thumb=document.getElementById(type==='odds'?`thumbOdds_${id}`:`thumbRank_${id}`);
+  const box=document.getElementById(type==='odds'?`scanBoxOdds_${id}`:`scanBoxRank_${id}`);
+  thumb.src=URL.createObjectURL(input.files[0]);
+  thumb.style.display='block';
   box.classList.add('has-img');
-
-  // Activer le bouton scan si au moins une image
-  const btn = document.getElementById(`scanBtn_${id}`);
-  btn.disabled = false;
-}
-
-async function fileToBase64(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(r.result.split(',')[1]);
-    r.onerror = () => rej(new Error('Lecture fichier échouée'));
-    r.readAsDataURL(file);
-  });
+  document.getElementById(`scanBtn_${id}`).disabled=false;
 }
 
 async function runScan(id) {
-  const sf = scanFiles[id];
-  if (!sf || (!sf.odds && !sf.rank)) return;
-
-  const btn    = document.getElementById(`scanBtn_${id}`);
-  const status = document.getElementById(`scanStatus_${id}`);
-  const card   = document.querySelector(`.match-card[data-id="${id}"]`);
-
-  btn.disabled = true;
-  btn.textContent = '⏳ Analyse en cours…';
-  status.className = 'scan-status show loading';
-  status.textContent = '🤖 IA en train de lire les captures…';
-
-  // Marquer les boxes en scanning
+  const sf=scanFiles[id];
+  if (!sf||(!sf.odds&&!sf.rank)) return;
+  const btn=document.getElementById(`scanBtn_${id}`);
+  const status=document.getElementById(`scanStatus_${id}`);
+  const card=document.querySelector(`.match-card[data-id="${id}"]`);
+  btn.disabled=true; btn.textContent='⏳ Analyse en cours…';
+  status.className='scan-status show loading';
+  status.textContent='🤖 IA en cours d\'analyse…';
   if (sf.odds) document.getElementById(`scanBoxOdds_${id}`).classList.add('scanning');
   if (sf.rank) document.getElementById(`scanBoxRank_${id}`).classList.add('scanning');
-
   try {
-    // Vérifier la clé API
-    const apiKey = window.GEMINI_API_KEY || '';
-    if (!apiKey) {
-      throw new Error('Clé API Gemini manquante. Déconnectez-vous et entrez votre clé API.');
-    }
+    const formData=new FormData();
+    if (sf.odds) formData.append('odds',sf.odds);
+    if (sf.rank) formData.append('rank',sf.rank);
+    const resp=await fetch('/scan',{method:'POST',headers:{'X-Gemini-Api-Key':window.GEMINI_API_KEY||''},body:formData});
+    const data=await resp.json();
+    if (!resp.ok) throw new Error(data.error||JSON.stringify(data));
 
-    const promptText = `Tu analyses des captures d'écran de l'appli de paris sportifs Bet261 (version afrique/CAN virtuelle).
-Réponds UNIQUEMENT en JSON valide, rien d'autre, sans backticks.
+    if (!window.scanData) window.scanData={};
+    window.scanData[id]=data;
+    applyScannedData(id,data,card);
 
-Format de réponse attendu:
-{
-  "matches": [
-    {
-      "teamA": "Nom équipe 1",
-      "teamB": "Nom équipe 2",
-      "cote1": 1.03,
-      "coteX": 12.56,
-      "cote2": 99.04
-    }
-  ],
-  "rankings": [
-    { "team": "Nom équipe", "rank": 1, "pts": 27, "form": ["W","W","W","W","D"] }
-  ]
-}
+    status.className='scan-status show success';
+    const nm=(data.matches||[]).length, nr=(data.rankings||[]).length;
+    status.textContent=`✅ ${nm} match(s) · ${nr} équipe(s) extraits`;
 
-Instructions:
-- Pour les cotes: extrais les 3 valeurs 1X2 pour chaque match visible (première = équipe du haut, deuxième = nul, troisième = équipe du bas).
-- Pour le classement: extrais rang, nom équipe, points, et historique (✓=W, ✘=L, –=D) des 5 derniers matchs. Lis de gauche à droite.
-- Si une image n'est pas fournie, retourne un tableau vide pour ce champ.
-- Normalise les noms d'équipes en français (ex: "DR Congo" → "RD Congo", "Ivory Coast" → "Côte d'Ivoire", "Egypt" → "Égypte", "Algeria" → "Algérie").
-- Ne rajoute AUCUN texte autour du JSON.`;
+    // ══ AUTO-ANALYSE APRÈS SCAN ══
+    setTimeout(()=>{ analyzeCard(id); }, 400);
 
-    // Construire les parts pour Gemini
-    const geminiParts = [{ text: promptText }];
-
-    if (sf.odds) {
-      const b64 = await fileToBase64(sf.odds);
-      geminiParts.push({ inline_data: { mime_type: sf.odds.type || 'image/jpeg', data: b64 } });
-      geminiParts.push({ text: 'Image ci-dessus: capture des COTES 1X2 des matchs.' });
-    }
-    if (sf.rank) {
-      const b64 = await fileToBase64(sf.rank);
-      geminiParts.push({ inline_data: { mime_type: sf.rank.type || 'image/jpeg', data: b64 } });
-      geminiParts.push({ text: 'Image ci-dessus: capture du CLASSEMENT des équipes.' });
-    }
-
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: geminiParts }],
-          generationConfig: { temperature: 0.1, maxOutputTokens: 1500 }
-        })
-      }
-    );
-
-    const data = await resp.json();
-
-    if (!resp.ok) {
-      const errMsg = data.error?.message || JSON.stringify(data);
-      throw new Error(`Erreur API Gemini (${resp.status}): ${errMsg}`);
-    }
-
-    const raw   = data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
-    const clean = raw.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(clean);
-
-    // Stocker les données extraites globalement pour usage
-    if (!window.scanData) window.scanData = {};
-    window.scanData[id] = parsed;
-
-    // Appliquer les données extraites
-    applyScannedData(id, parsed, card);
-
-    status.className = 'scan-status show success';
-    const nbMatches  = (parsed.matches || []).length;
-    const nbRankings = (parsed.rankings || []).length;
-    status.textContent = `✅ Extrait : ${nbMatches} match(s) · ${nbRankings} équipe(s) au classement`;
-
-    // Si plusieurs matchs extraits, proposer de les distribuer
-    if (nbMatches > 1) {
-      setTimeout(() => distributeMatches(id, parsed), 300);
-    }
-
-  } catch (err) {
-    console.error(err);
-    status.className = 'scan-status show error';
-    const msg = err.message || '';
-    if (msg.includes('manquante') || msg.includes('Déconnectez')) {
-      status.textContent = '❌ ' + msg;
-    } else if (msg.includes('400') || msg.includes('API_KEY_INVALID')) {
-      status.textContent = '❌ Clé API invalide. Vérifiez votre clé Gemini sur aistudio.google.com';
-    } else if (msg.includes('429')) {
-      status.textContent = '❌ Quota dépassé. Réessayez dans 1 minute.';
-    } else {
-      status.textContent = '❌ Erreur : ' + msg;
-    }
+    if (nm>1) setTimeout(()=>distributeMatches(id,data),300);
+  } catch(err) {
+    status.className='scan-status show error';
+    status.textContent='❌ '+err.message;
   } finally {
-    btn.disabled = false;
-    btn.innerHTML = '🔍 Analyser les captures avec l\'IA';
+    btn.disabled=false; btn.innerHTML='🔍 Analyser avec l\'IA';
     if (sf.odds) document.getElementById(`scanBoxOdds_${id}`).classList.remove('scanning');
     if (sf.rank) document.getElementById(`scanBoxRank_${id}`).classList.remove('scanning');
   }
 }
 
-/* Applique les données extraites à la carte courante (1er match trouvé) */
-function applyScannedData(id, parsed, card) {
-  const matches  = parsed.matches  || [];
-  const rankings = parsed.rankings || [];
-
-  // Remplir avec le 1er match si disponible
-  if (matches.length > 0) {
-    const m = matches[0];
-    applyMatchToCard(id, m, rankings, card);
-  } else if (rankings.length > 0) {
-    // Juste le classement
-    applyRankingsToCard(id, rankings, card);
-  }
+function applyScannedData(id,parsed,card) {
+  const matches=parsed.matches||[], rankings=parsed.rankings||[];
+  if (matches.length>0) applyMatchToCard(id,matches[0],rankings,card);
+  else if (rankings.length>0) applyRankingsToCard(id,rankings,card);
 }
-
-function applyMatchToCard(id, m, rankings, card) {
-  // Noms des équipes
-  const selA = card.querySelector('.teamA');
-  const selB = card.querySelector('.teamB');
-  setSelectByText(selA, m.teamA);
-  setSelectByText(selB, m.teamB);
-
-  // Cotes
-  if (m.cote1) card.querySelector('.coteA').value = m.cote1;
-  if (m.coteX) card.querySelector('.coteX').value = m.coteX;
-  if (m.cote2) card.querySelector('.coteB').value = m.cote2;
-  if (m.over25) card.querySelector('.over25').value = m.over25;
-  if (m.under25) card.querySelector('.under25').value = m.under25;
-  if (m.over15) card.querySelector('.over15').value = m.over15;
-  if (m.under15) card.querySelector('.under15').value = m.under15;
-  if (m.coteGG) card.querySelector('.coteGG').value = m.coteGG;
-  if (m.coteNG) card.querySelector('.coteNG').value = m.coteNG;
-  if (m.dc1x) card.querySelector('.coteDC1X').value = m.dc1x;
-  if (m.dcx2) card.querySelector('.coteDCX2').value = m.dcx2;
-
-  // Classement depuis les rankings
-  if (rankings.length > 0) {
-    applyRankingsToCard(id, rankings, card, m.teamA, m.teamB);
-  }
+function applyMatchToCard(id,m,rankings,card) {
+  setSelectByText(card.querySelector('.teamA'),m.teamA);
+  setSelectByText(card.querySelector('.teamB'),m.teamB);
+  const fields=[['coteA','cote1'],['coteX','coteX'],['coteB','cote2'],['over25','over25'],
+    ['under25','under25'],['over15','over15'],['under15','under15'],['coteGG','coteGG'],
+    ['coteNG','coteNG'],['coteDC1X','dc1x'],['coteDCX2','dcx2']];
+  fields.forEach(([cls,key])=>{ if(m[key]) card.querySelector('.'+cls).value=m[key]; });
+  if (rankings.length>0) applyRankingsToCard(id,rankings,card,m.teamA,m.teamB);
 }
-
-function applyRankingsToCard(id, rankings, card, teamAName, teamBName) {
-  const findRank = (name) => {
+function applyRankingsToCard(id,rankings,card,tA,tB) {
+  const findRank=name=>{
     if (!name) return null;
-    const n = name.toLowerCase().trim();
-    return rankings.find(r => r.team && r.team.toLowerCase().includes(n.split(' ')[0]));
+    const n=name.toLowerCase().trim();
+    return rankings.find(r=>r.team&&r.team.toLowerCase().includes(n.split(' ')[0]));
   };
-
-  const tA = teamAName || card.querySelector('.teamA').value;
-  const tB = teamBName || card.querySelector('.teamB').value;
-  const rA = findRank(tA);
-  const rB = findRank(tB);
-
-  if (rA) {
-    card.querySelector('.rankA').value = rA.rank;
-    if (rA.form && rA.form.length === 5) {
-      setFormSlots(card, 'A', rA.form, id);
-    }
-  }
-  if (rB) {
-    card.querySelector('.rankB').value = rB.rank;
-    if (rB.form && rB.form.length === 5) {
-      setFormSlots(card, 'B', rB.form, id);
-    }
-  }
-
-  // Mettre à jour l'écart de rang
+  const rA=findRank(tA||card.querySelector('.teamA').value);
+  const rB=findRank(tB||card.querySelector('.teamB').value);
+  if (rA) { card.querySelector('.rankA').value=rA.rank; if(rA.form?.length===5) setFormSlots(card,'A',rA.form,id); }
+  if (rB) { card.querySelector('.rankB').value=rB.rank; if(rB.form?.length===5) setFormSlots(card,'B',rB.form,id); }
   card.querySelector('.rankA').dispatchEvent(new Event('input'));
 }
-
-function setFormSlots(card, side, formArr, id) {
-  const sels = card.querySelectorAll(`.form-sel-${side}`);
-  formArr.forEach((v, i) => {
-    if (sels[i]) {
-      sels[i].value = v;
-      colorFormSelect(sels[i]);
-    }
-  });
-  updateFormBar(id, side);
+function setFormSlots(card,side,formArr,id) {
+  const sels=card.querySelectorAll(`.form-sel-${side}`);
+  formArr.forEach((v,i)=>{ if(sels[i]){sels[i].value=v; colorFormSelect(sels[i]);} });
+  updateFormBar(id,side);
 }
-
-function setSelectByText(sel, text) {
-  if (!text || !sel) return;
-  const t = text.toLowerCase().trim();
+function setSelectByText(sel,text) {
+  if (!text||!sel) return;
+  const t=text.toLowerCase().trim();
   for (const opt of sel.options) {
-    if (opt.value.toLowerCase().includes(t.split(' ')[0]) || t.includes(opt.value.toLowerCase().split(' ')[0])) {
-      sel.value = opt.value;
-      return;
+    if (opt.value.toLowerCase().includes(t.split(' ')[0])||t.includes(opt.value.toLowerCase().split(' ')[0])) {
+      sel.value=opt.value; return;
     }
   }
-  // Essai exact
-  for (const opt of sel.options) {
-    if (opt.value.toLowerCase() === t) { sel.value = opt.value; return; }
-  }
 }
-
-/* Si plusieurs matchs extraits: distribuer sur les cartes existantes ou en créer */
-function distributeMatches(sourceId, parsed) {
-  const matches  = parsed.matches  || [];
-  const rankings = parsed.rankings || [];
-  if (matches.length <= 1) return;
-
-  const cards = document.querySelectorAll('.match-card');
-  const existing = [...cards].map(c => parseInt(c.dataset.id));
-
-  // 1er match → carte source (déjà appliqué)
-  // Matchs suivants → nouvelles cartes ou cartes vides existantes
-  matches.slice(1).forEach((m, idx) => {
-    // Y a-t-il une carte vide suivante ?
-    const nextId = existing[idx + 1];
-    const nextCard = nextId ? document.querySelector(`.match-card[data-id="${nextId}"]`) : null;
-    const isEmpty  = nextCard && !results[nextId] &&
-                     !nextCard.querySelector('.coteA').value;
-
-    if (isEmpty) {
-      applyMatchToCard(nextId, m, rankings, nextCard);
-    } else {
-      // Créer une nouvelle carte vide puis l'appliquer
+function distributeMatches(sourceId,parsed) {
+  const matches=parsed.matches||[], rankings=parsed.rankings||[];
+  if (matches.length<=1) return;
+  const existing=[...document.querySelectorAll('.match-card')].map(c=>parseInt(c.dataset.id));
+  matches.slice(1).forEach((m,idx)=>{
+    const nextId=existing[idx+1];
+    const nextCard=nextId?document.querySelector(`.match-card[data-id="${nextId}"]`):null;
+    const isEmpty=nextCard&&!results[nextId]&&!nextCard.querySelector('.coteA').value;
+    if (isEmpty) { applyMatchToCard(nextId,m,rankings,nextCard); setTimeout(()=>analyzeCard(nextId),500); }
+    else {
       addMatchCard();
-      const newCard = document.querySelector('.match-card:last-child');
-      const newId   = parseInt(newCard.dataset.id);
-      applyMatchToCard(newId, m, rankings, newCard);
+      const newCard=document.querySelector('.match-card:last-child');
+      const newId=parseInt(newCard.dataset.id);
+      applyMatchToCard(newId,m,rankings,newCard);
+      setTimeout(()=>analyzeCard(newId),500);
     }
   });
-
-  // Mettre à jour le status
-  const status = document.getElementById(`scanStatus_${sourceId}`);
-  status.textContent = `✅ ${matches.length} matchs distribués automatiquement sur ${matches.length} carte(s) !`;
+  const status=document.getElementById(`scanStatus_${sourceId}`);
+  status.textContent=`✅ ${matches.length} matchs distribués et analysés automatiquement !`;
 }
 </script>
 </body>
