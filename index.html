@@ -4,11 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Safe Boom — Analyseur</title>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-/* ═══════════════════════════════════════════
-   VARIABLES — DARK / LIGHT
-═══════════════════════════════════════════ */
 :root {
   --accent: #7c4dff;
   --accent2: #b388ff;
@@ -25,8 +22,9 @@
   --sidebar-w: 220px;
   --topbar-h: 56px;
   --transition: 0.2s ease;
+  --font-main: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
-
 [data-theme="dark"] {
   --bg: #0d0d14;
   --bg2: #13131f;
@@ -40,7 +38,6 @@
   --sidebar-bg: #13131f;
   --shadow: 0 4px 24px #0008;
 }
-
 [data-theme="light"] {
   --bg: #f0f0fa;
   --bg2: #e8e8f8;
@@ -54,22 +51,22 @@
   --sidebar-bg: #ffffff;
   --shadow: 0 4px 24px #0001;
 }
-
-/* ═══════════════════════════════════════════
-   BASE
-═══════════════════════════════════════════ */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font-main);
+  font-size: 14px;
   min-height: 100vh;
   transition: background var(--transition), color var(--transition);
+  -webkit-font-smoothing: antialiased;
 }
+.ico { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
+.ico svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.ico-lg svg { width:20px; height:20px; }
+.ico-sm svg { width:13px; height:13px; }
 
-/* ═══════════════════════════════════════════
-   LOGIN
-═══════════════════════════════════════════ */
+/* LOGIN */
 #loginScreen {
   display: flex;
   flex-direction: column;
@@ -91,19 +88,24 @@ body {
   pointer-events: none;
 }
 .login-logo {
-  font-size: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 2rem;
   font-weight: 800;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 0.3rem;
-  letter-spacing: -1px;
+  letter-spacing: -1.5px;
 }
+.login-logo svg { width:32px; height:32px; -webkit-text-fill-color:initial; }
 .login-sub {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--text2);
   margin-bottom: 2rem;
+  letter-spacing: 0.2px;
 }
 .login-card {
   background: var(--card);
@@ -130,7 +132,7 @@ body {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text);
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font-main);
   font-size: 0.95rem;
   font-weight: 600;
   padding: 0.7rem 1rem;
@@ -144,16 +146,17 @@ body {
   border: none;
   border-radius: var(--radius);
   color: #fff;
-  font-family: 'Sora', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 800;
-  letter-spacing: 1px;
+  font-family: var(--font-main);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
   padding: 0.85rem;
   cursor: pointer;
   margin-top: 0.5rem;
   text-transform: uppercase;
   transition: opacity .2s, transform .1s;
   box-shadow: 0 4px 20px #7c4dff44;
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
 }
 .login-btn:active { transform: scale(0.98); opacity: 0.9; }
 .login-error {
@@ -169,13 +172,9 @@ body {
 }
 .login-error.show { display: block; }
 
-/* ═══════════════════════════════════════════
-   LAYOUT — YOUTUBE STYLE
-═══════════════════════════════════════════ */
+/* LAYOUT */
 #mainApp { display: none; }
 #mainApp.show { display: flex; flex-direction: column; min-height: 100vh; }
-
-/* ── TOPBAR ── */
 .topbar {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -193,7 +192,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   -webkit-background-clip: text;
@@ -203,10 +202,8 @@ body {
   white-space: nowrap;
   text-decoration: none;
 }
-.topbar-logo .logo-icon {
-  font-size: 1.3rem;
-  -webkit-text-fill-color: initial;
-}
+.topbar-logo .logo-icon { -webkit-text-fill-color:initial; display:flex; }
+.topbar-logo .logo-icon svg { width:22px; height:22px; stroke:var(--accent2); fill:none; stroke-width:2; }
 .topbar-search {
   flex: 1;
   display: flex;
@@ -220,7 +217,7 @@ body {
   border: 1.5px solid var(--border);
   border-radius: 30px;
   color: var(--text);
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font-main);
   font-size: 0.82rem;
   padding: 0.4rem 1rem;
   outline: none;
@@ -236,6 +233,7 @@ body {
   border-radius: 20px;
   padding: 0.25rem 0.7rem;
   font-weight: 700;
+  display: flex; align-items: center; gap: 0.3rem;
 }
 .theme-btn {
   background: var(--card2);
@@ -243,9 +241,9 @@ body {
   border-radius: 50%;
   width: 34px; height: 34px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1rem;
   cursor: pointer;
   transition: border-color var(--transition), background var(--transition);
+  color: var(--text2);
 }
 .theme-btn:hover { border-color: var(--accent); }
 .logout-btn {
@@ -253,23 +251,22 @@ body {
   border: 1.5px solid var(--border);
   border-radius: 20px;
   color: var(--text2);
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font-main);
   font-size: 0.68rem;
   font-weight: 700;
   padding: 0.3rem 0.8rem;
   cursor: pointer;
+  display: flex; align-items: center; gap: 0.3rem;
   transition: color var(--transition), border-color var(--transition);
 }
 .logout-btn:hover { color: var(--red); border-color: var(--red); }
-
-/* ── BODY LAYOUT ── */
 .app-body {
   display: flex;
   margin-top: var(--topbar-h);
   min-height: calc(100vh - var(--topbar-h));
 }
 
-/* ── SIDEBAR ── */
+/* SIDEBAR */
 .sidebar {
   width: var(--sidebar-w);
   background: var(--sidebar-bg);
@@ -316,7 +313,8 @@ body {
   color: var(--accent2);
   border: 1px solid var(--accent-glow);
 }
-.sidebar-item .si-icon { font-size: 1rem; min-width: 20px; text-align: center; }
+.sidebar-item .si-icon { display:flex; align-items:center; min-width:20px; justify-content:center; }
+.sidebar-item .si-icon svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .sidebar-item .si-count {
   margin-left: auto;
   font-size: 0.6rem;
@@ -326,22 +324,13 @@ body {
   padding: 0.1rem 0.4rem;
   font-weight: 700;
 }
-.sidebar-divider {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 0.8rem 0.5rem;
-}
-.sidebar-league {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding: 0 0.2rem;
-}
+.sidebar-divider { border: none; border-top: 1px solid var(--border); margin: 0.8rem 0.5rem; }
+.sidebar-league { display: flex; flex-direction: column; gap: 0.3rem; padding: 0 0.2rem; }
 .league-btn {
   padding: 0.5rem 0.7rem;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font-main);
   font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
@@ -353,18 +342,17 @@ body {
   align-items: center;
   gap: 0.4rem;
 }
+.league-btn svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; flex-shrink:0; }
 .league-btn.active-eng { background: #1565c022; border-color: #1565c0; color: #64b5f6; }
 .league-btn.active-caf { background: #b71c1c22; border-color: #b71c1c; color: #ffd740; }
 
-/* ── MAIN CONTENT ── */
+/* MAIN CONTENT */
 .main-content {
   margin-left: var(--sidebar-w);
   flex: 1;
   padding: 1.4rem 1.6rem 3rem;
   max-width: calc(100vw - var(--sidebar-w));
 }
-
-/* ── SECTION HEADER (YouTube-style) ── */
 .section-header {
   display: flex;
   align-items: center;
@@ -372,10 +360,12 @@ body {
   margin-bottom: 1rem;
 }
 .section-header h2 {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--text);
+  display: flex; align-items: center; gap: 0.5rem;
 }
+.section-header h2 svg { width:16px; height:16px; stroke:var(--accent2); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .see-all-btn {
   font-size: 0.72rem;
   color: var(--accent2);
@@ -383,11 +373,12 @@ body {
   cursor: pointer;
   background: none;
   border: none;
-  font-family: 'Sora', sans-serif;
-  text-decoration: none;
+  font-family: var(--font-main);
+  display: flex; align-items: center; gap: 0.3rem;
 }
+.see-all-btn svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; }
 
-/* ── SUMMARY STRIP (like YouTube trending) ── */
+/* SUMMARY */
 #summaryPanel {
   display: none;
   background: var(--card);
@@ -412,7 +403,9 @@ body {
   color: var(--accent2);
   text-transform: uppercase;
   letter-spacing: 1.5px;
+  display: flex; align-items: center; gap: 0.35rem;
 }
+.summary-header span svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; }
 .summary-header .sum-count { font-size: 0.7rem; color: var(--text2); }
 #summaryRows { padding: 0.3rem 0; }
 .sum-row {
@@ -426,14 +419,14 @@ body {
 }
 .sum-row:last-child { border-bottom: none; }
 .sum-row:hover { background: var(--card2); }
-.sum-num   { font-size: 0.6rem; color: var(--text3); min-width: 18px; font-family: 'Space Mono', monospace; }
+.sum-num   { font-size: 0.6rem; color: var(--text3); min-width: 18px; font-family: var(--font-mono); }
 .sum-teams { flex: 1; font-weight: 600; color: var(--text); }
 .sum-out   { font-weight: 800; font-size: 0.9rem; color: var(--green); min-width: 20px; text-align: center; }
-.sum-score { color: var(--blue); font-size: 0.72rem; min-width: 36px; text-align: center; font-family: 'Space Mono', monospace; }
+.sum-score { color: var(--blue); font-size: 0.72rem; min-width: 36px; text-align: center; font-family: var(--font-mono); }
 .sum-stars { color: var(--yellow); font-size: 0.68rem; }
 .sum-over  { color: var(--orange); font-size: 0.68rem; min-width: 60px; text-align: center; }
 
-/* ── MATCH GRID (YouTube cards layout) ── */
+/* MATCH GRID */
 .matches-wrapper {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(370px, 1fr));
@@ -441,7 +434,7 @@ body {
   align-items: start;
 }
 
-/* ── MATCH CARD ── */
+/* MATCH CARD */
 .match-card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -452,8 +445,6 @@ body {
   transition: border-color var(--transition), transform var(--transition);
 }
 .match-card:hover { border-color: var(--accent-glow); transform: translateY(-1px); }
-
-/* Card "thumbnail" header — like YouTube */
 .card-thumb {
   background: linear-gradient(135deg, #13131f 0%, #1e1e38 100%);
   padding: 0.9rem 1rem 0.7rem;
@@ -462,9 +453,7 @@ body {
   align-items: center;
   justify-content: space-between;
 }
-[data-theme="light"] .card-thumb {
-  background: linear-gradient(135deg, var(--card2) 0%, #ebe8ff 100%);
-}
+[data-theme="light"] .card-thumb { background: linear-gradient(135deg, var(--card2) 0%, #ebe8ff 100%); }
 .card-thumb-left { display: flex; align-items: center; gap: 0.6rem; }
 .card-num-badge {
   width: 28px; height: 28px;
@@ -474,7 +463,7 @@ body {
   font-size: 0.72rem;
   font-weight: 800;
   color: #fff;
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-mono);
 }
 .match-label {
   font-size: 0.72rem;
@@ -485,25 +474,28 @@ body {
 }
 .match-time-badge {
   font-size: 0.65rem;
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-mono);
   color: var(--text2);
   background: var(--card2);
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 0.2rem 0.5rem;
+  display: flex; align-items: center; gap: 0.3rem;
 }
+.match-time-badge svg { width:11px; height:11px; stroke:var(--accent2); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .remove-btn {
   background: none; border: none;
-  color: var(--text3); font-size: 1rem;
+  color: var(--text3);
   cursor: pointer; line-height: 1;
   transition: color var(--transition);
   padding: 0.2rem;
+  display: flex;
 }
 .remove-btn:hover { color: var(--red); }
-
+.remove-btn svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; }
 .card-body { padding: 0.9rem 1rem; }
 
-/* ── SCANNER ZONE ── */
+/* SCANNER */
 .scanner-zone { margin-bottom: 0.9rem; }
 .scanner-title {
   font-size: 0.62rem;
@@ -514,7 +506,9 @@ body {
   margin-bottom: 0.5rem;
   padding-bottom: 0.3rem;
   border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.3rem;
 }
+.scanner-title svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; }
 .scanner-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -539,10 +533,9 @@ body {
   overflow: hidden;
 }
 .scan-upload-box:hover { border-color: var(--accent); background: var(--accent-dim); }
-.scan-upload-box input[type="file"] {
-  position: absolute; inset: 0; opacity: 0; cursor: pointer;
-}
-.scan-upload-box .scan-icon { font-size: 1.3rem; }
+.scan-upload-box input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.scan-upload-box .scan-icon { color:var(--accent2); }
+.scan-upload-box .scan-icon svg { width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.5; }
 .scan-upload-box .scan-label {
   font-size: 0.58rem; font-weight: 700; color: var(--accent2);
   letter-spacing: 0.5px; line-height: 1.3; text-transform: uppercase;
@@ -552,7 +545,6 @@ body {
 .scan-upload-box.scanning { border-color: var(--yellow); animation: pulse-border 0.8s infinite alternate; }
 @keyframes pulse-border { from { border-color: var(--yellow); } to { border-color: var(--orange); } }
 .thumb-preview { width: 100%; max-height: 52px; object-fit: cover; border-radius: 6px; margin-top: 0.25rem; display: none; }
-
 .scan-btn {
   display: flex; align-items: center; justify-content: center; gap: 0.4rem;
   width: 100%;
@@ -560,7 +552,7 @@ body {
   border: 1.5px solid var(--accent);
   border-radius: var(--radius-sm);
   color: var(--accent2);
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font-main);
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -569,9 +561,9 @@ body {
   text-transform: uppercase;
   transition: all 0.2s;
 }
+.scan-btn svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .scan-btn:hover { background: var(--accent-glow); color: #fff; }
 .scan-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
 .scan-status {
   font-size: 0.7rem; font-weight: 700;
   border-radius: var(--radius-sm);
@@ -584,7 +576,104 @@ body {
 .scan-status.success { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
 .scan-status.error   { background: #ff525218; color: var(--red); border: 1px solid var(--red); }
 
-/* ── SECTION TITLE (in-card) ── */
+/* RESULTS SCAN ZONE */
+.results-scan-zone {
+  margin-top: 0.6rem;
+  background: #00e67608;
+  border: 1.5px dashed #00e67644;
+  border-radius: var(--radius-sm);
+  padding: 0.7rem 0.8rem;
+  transition: border-color 0.2s;
+}
+.results-scan-zone.active { border-color: var(--green); background: var(--green-dim); }
+.results-scan-title {
+  font-size: 0.6rem; font-weight: 700; color: var(--green);
+  text-transform: uppercase; letter-spacing: 1.2px;
+  display: flex; align-items: center; gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+.results-scan-title svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+.results-upload-row { display: flex; align-items: center; gap: 0.5rem; }
+.results-upload-label {
+  display: flex; align-items: center; gap: 0.4rem;
+  background: #00e67614; border: 1.5px solid #00e67644;
+  border-radius: var(--radius-sm);
+  color: var(--green); font-size: 0.72rem; font-weight: 700;
+  padding: 0.38rem 0.7rem; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+}
+.results-upload-label:hover { background: var(--green-dim); border-color: var(--green); }
+.results-upload-label svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.results-upload-label input[type="file"] { display:none; }
+.results-thumb { height: 36px; border-radius: 4px; display:none; border: 1px solid var(--green); }
+.results-scan-btn {
+  display: flex; align-items: center; gap: 0.35rem;
+  background: var(--green-dim); border: 1.5px solid var(--green);
+  border-radius: var(--radius-sm);
+  color: var(--green); font-family: var(--font-main);
+  font-size: 0.7rem; font-weight: 700;
+  padding: 0.38rem 0.7rem; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+  letter-spacing: 0.5px; text-transform: uppercase;
+}
+.results-scan-btn svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+.results-scan-btn:hover { background: #00e67630; }
+.results-scan-btn:disabled { opacity:0.35; cursor:not-allowed; }
+.results-status {
+  font-size: 0.68rem; font-weight: 700;
+  border-radius: 6px; padding: 0.3rem 0.6rem;
+  margin-top: 0.35rem; display:none; text-align:center;
+}
+.results-status.show { display:block; }
+.results-status.loading { background:#ffd74018; color:var(--yellow); border:1px solid var(--yellow); }
+.results-status.success { background:var(--green-dim); color:var(--green); border:1px solid var(--green); }
+.results-status.error   { background:#ff525218; color:var(--red); border:1px solid var(--red); }
+.results-status.training { background:#7c4dff18; color:var(--accent2); border:1px solid var(--accent); }
+
+/* ML STATUS PANEL (sidebar) */
+.ml-status-panel {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.7rem;
+  margin: 0 0.2rem;
+  font-size: 0.68rem;
+}
+.ml-status-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem; color:var(--text2); }
+.ml-status-row:last-child { margin-bottom:0; }
+.ml-status-val { font-weight:700; font-family:var(--font-mono); }
+.ml-status-val.on  { color:var(--green); }
+.ml-status-val.off { color:var(--red); }
+.ml-status-val.num { color:var(--accent2); }
+.ml-acc-bar {
+  height:5px; background:var(--border); border-radius:3px; margin-top:0.5rem;
+  overflow:hidden;
+}
+.ml-acc-fill { height:100%; background:linear-gradient(90deg,var(--accent),var(--green)); border-radius:3px; transition:width 0.5s ease; }
+
+/* IMPORT GLOBAL (sidebar button) */
+#globalImportBtn {
+  width:100%; display:flex; align-items:center; justify-content:center; gap:0.4rem;
+  background:#00e67610; border:1.5px solid #00e67644;
+  border-radius:var(--radius-sm); color:var(--green);
+  font-family:var(--font-main); font-size:0.72rem; font-weight:700;
+  padding:0.5rem; cursor:pointer; transition:all 0.2s;
+  text-transform:uppercase; letter-spacing:0.5px; margin:0 0.2rem;
+}
+#globalImportBtn svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+#globalImportBtn:hover { background:var(--green-dim); border-color:var(--green); }
+#globalImportStatus {
+  font-size:0.65rem; font-weight:700; border-radius:6px;
+  padding:0.28rem 0.5rem; display:none; text-align:center;
+  margin:0.3rem 0.2rem 0;
+}
+#globalImportStatus.show { display:block; }
+#globalImportStatus.loading { background:#ffd74018; color:var(--yellow); border:1px solid var(--yellow); }
+#globalImportStatus.success { background:var(--green-dim); color:var(--green); border:1px solid var(--green); }
+#globalImportStatus.error   { background:#ff525218; color:var(--red); border:1px solid var(--red); }
+#globalImportStatus.training { background:#7c4dff18; color:var(--accent2); border:1px solid var(--accent); }
+
+/* SECTION TITLE */
 .sec-title {
   font-size: 0.6rem;
   font-weight: 700;
@@ -594,16 +683,18 @@ body {
   margin: 0.8rem 0 0.45rem;
   padding-bottom: 0.28rem;
   border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.3rem;
 }
+.sec-title svg { width:11px; height:11px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 
-/* ── TIME ── */
-.time-row { margin-bottom: 0.1rem; }
+/* TIME */
+.time-row { margin-bottom: 0.1rem; display:flex; align-items:center; gap:0.5rem; }
 .time-row input[type="time"] {
   background: var(--card2);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text);
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.9rem;
   font-weight: 700;
   padding: 0.38rem 0.7rem;
@@ -611,14 +702,25 @@ body {
   transition: border-color var(--transition);
 }
 .time-row input[type="time"]:focus { border-color: var(--accent); }
-
-/* ── TEAMS ── */
-.teams-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
-  margin-bottom: 0.2rem;
+.time-now-btn {
+  background: var(--card2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text2);
+  font-family: var(--font-main);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.38rem 0.55rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 0.3rem;
+  white-space: nowrap;
 }
+.time-now-btn svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.time-now-btn:hover { border-color: var(--accent); color: var(--accent2); }
+
+/* TEAMS / RANK / FORM */
+.teams-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.2rem; }
 .team-col label { font-size: 0.6rem; color: var(--text2); display: block; margin-bottom: 0.25rem; font-weight: 700; }
 .team-col select {
   width: 100%;
@@ -626,7 +728,7 @@ body {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text);
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font-main);
   font-size: 0.78rem;
   font-weight: 600;
   padding: 0.42rem 0.55rem;
@@ -640,14 +742,7 @@ body {
 }
 .team-col select:focus { border-color: var(--accent); }
 .team-col select option { background: var(--card); }
-
-/* ── RANG ── */
-.rank-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.6rem;
-  margin-bottom: 0.4rem;
-}
+.rank-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.4rem; }
 .rank-col label { font-size: 0.6rem; color: var(--text2); display: block; margin-bottom: 0.25rem; font-weight: 700; }
 .rank-col input[type="number"] {
   width: 100%;
@@ -655,7 +750,7 @@ body {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--yellow);
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 1.05rem;
   font-weight: 700;
   padding: 0.38rem 0.5rem;
@@ -664,7 +759,6 @@ body {
   transition: border-color var(--transition);
 }
 .rank-col input:focus { border-color: var(--yellow); }
-
 .rank-gap-indicator {
   display: flex;
   align-items: center;
@@ -678,12 +772,10 @@ body {
   font-size: 0.72rem;
   color: var(--text2);
 }
-.rank-gap-indicator .gap-value { font-weight: 800; font-size: 0.88rem; font-family: 'Space Mono', monospace; }
+.rank-gap-indicator .gap-value { font-weight: 800; font-size: 0.88rem; font-family: var(--font-mono); }
 .gap-value.big    { color: var(--green); }
 .gap-value.medium { color: var(--yellow); }
 .gap-value.small  { color: var(--red); }
-
-/* ── FORME ── */
 .form-section { margin-bottom: 0.2rem; }
 .form-teams-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
 .form-team-label { font-size: 0.6rem; color: var(--text2); display: block; margin-bottom: 0.3rem; font-weight: 700; }
@@ -696,7 +788,7 @@ body {
   border: 1.5px solid var(--border);
   border-radius: 6px;
   color: var(--text);
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font-main);
   font-size: 0.72rem;
   font-weight: 700;
   padding: 0.25rem 0.05rem;
@@ -711,7 +803,6 @@ body {
 .form-slot select.val-D { border-color: #5a5a88; color: #9898c0; background: #5a5a8811; }
 .form-slot select.val-L { border-color: var(--red); color: var(--red); background: #ff525212; }
 .form-slot select option { background: var(--card); color: var(--text); }
-
 .form-score-bar {
   display: flex;
   align-items: center;
@@ -730,13 +821,8 @@ body {
 .fsb-val.medium { color: var(--yellow); }
 .fsb-val.poor   { color: var(--red); }
 
-/* ── COTES ── */
-.odds-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 0.45rem;
-  margin-bottom: 0.2rem;
-}
+/* COTES */
+.odds-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.45rem; margin-bottom: 0.2rem; }
 .odd-box { display: flex; flex-direction: column; }
 .odd-box label { font-size: 0.58rem; color: var(--text2); margin-bottom: 0.22rem; font-weight: 700; }
 .odd-box input {
@@ -744,7 +830,7 @@ body {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text);
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.95rem;
   font-weight: 700;
   padding: 0.4rem 0.4rem;
@@ -754,14 +840,7 @@ body {
   transition: border-color var(--transition);
 }
 .odd-box input:focus { border-color: var(--accent); }
-
-/* ── EXTRA MARKETS ── */
-.extra-markets-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.45rem;
-  margin-bottom: 0.2rem;
-}
+.extra-markets-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45rem; margin-bottom: 0.2rem; }
 .extra-box { display: flex; flex-direction: column; }
 .extra-box label { font-size: 0.58rem; color: var(--text2); margin-bottom: 0.22rem; font-weight: 700; }
 .extra-box input {
@@ -769,7 +848,7 @@ body {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--orange);
-  font-family: 'Space Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 0.85rem;
   font-weight: 700;
   padding: 0.35rem 0.4rem;
@@ -780,7 +859,7 @@ body {
 }
 .extra-box input:focus { border-color: var(--orange); }
 
-/* ── BUTTONS ── */
+/* BUTTONS */
 .autofill-btn {
   display: flex; align-items: center; justify-content: center; gap: 0.4rem;
   width: 100%;
@@ -788,7 +867,7 @@ body {
   border: 1.5px solid #7c4dff66;
   border-radius: var(--radius-sm);
   color: var(--accent2);
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font-main);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -798,8 +877,8 @@ body {
   text-transform: uppercase;
   transition: all 0.2s;
 }
+.autofill-btn svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .autofill-btn:hover { background: var(--accent-glow); border-color: var(--accent); color: #fff; }
-
 .card-analyse-btn {
   display: flex; align-items: center; justify-content: center; gap: 0.4rem;
   width: 100%;
@@ -807,7 +886,7 @@ body {
   border: 1.5px solid var(--green);
   border-radius: var(--radius-sm);
   color: var(--green);
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font-main);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.8px;
@@ -818,8 +897,9 @@ body {
   transition: all 0.2s;
 }
 .card-analyse-btn:hover { background: #00e67628; }
+.card-analyse-btn svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
 
-/* ── RESULT ── */
+/* RESULT */
 .card-result {
   display: none;
   margin-top: 0.8rem;
@@ -829,7 +909,6 @@ body {
 }
 .card-result.show { display: block; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
 .cr-label {
   font-size: 0.58rem;
   font-weight: 700;
@@ -837,13 +916,10 @@ body {
   text-transform: uppercase;
   letter-spacing: 1.5px;
   margin-bottom: 0.5rem;
+  display: flex; align-items: center; gap: 0.3rem;
 }
-.cr-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-}
+.cr-label svg { width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:2.5; }
+.cr-row { display: flex; align-items: flex-start; gap: 0.4rem; flex-wrap: wrap; }
 .cr-chip {
   display: flex; flex-direction: column; align-items: center;
   background: var(--card2);
@@ -853,7 +929,7 @@ body {
   min-width: 48px;
 }
 .cr-chip .ch-label { font-size: 0.5rem; color: var(--text3); margin-bottom: 0.12rem; text-align: center; }
-.cr-chip .ch-value { font-size: 0.95rem; font-weight: 800; font-family: 'Space Mono', monospace; }
+.cr-chip .ch-value { font-size: 0.95rem; font-weight: 800; font-family: var(--font-mono); }
 .cr-chip.cr-1x2   .ch-value { color: var(--green); }
 .cr-chip.cr-score .ch-value { color: var(--blue); font-size: 0.82rem; }
 .cr-chip.cr-total .ch-value { color: var(--yellow); }
@@ -862,7 +938,6 @@ body {
 .cr-chip.cr-dc    .ch-value { color: #80deea; font-size: 0.78rem; }
 .cr-chip.cr-rel   .ch-value { color: var(--yellow); font-size: 0.65rem; }
 .cr-chip.cr-form  .ch-value { color: var(--blue); font-size: 0.72rem; }
-
 .cr-conf-badge {
   font-size: 0.6rem; font-weight: 700;
   padding: 0.22rem 0.5rem;
@@ -876,7 +951,7 @@ body {
 .cr-conf-badge.med  { background: #ffd74018; color: var(--yellow); border: 1px solid var(--yellow); }
 .cr-conf-badge.low  { background: #ff525218; color: var(--red); border: 1px solid var(--red); }
 
-/* ── ADD MATCH BTN ── */
+/* ADD MATCH */
 .add-match-btn {
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
   width: 100%;
@@ -884,7 +959,7 @@ body {
   border: 1.5px dashed var(--border);
   border-radius: var(--radius);
   color: var(--text2);
-  font-family: 'Sora', sans-serif;
+  font-family: var(--font-main);
   font-size: 0.82rem;
   font-weight: 600;
   padding: 0.9rem;
@@ -892,8 +967,8 @@ body {
   cursor: pointer;
   transition: all 0.2s;
 }
+.add-match-btn svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; }
 .add-match-btn:hover { color: var(--accent2); border-color: var(--accent); background: var(--accent-dim); }
-
 .error-msg {
   background: #ff525214;
   border: 1px solid var(--red);
@@ -905,7 +980,6 @@ body {
   display: none; text-align: center;
 }
 .error-msg.show { display: block; }
-
 footer {
   text-align: center;
   margin-top: 2.5rem;
@@ -913,8 +987,6 @@ footer {
   color: var(--text3);
   line-height: 1.8;
 }
-
-/* ── RESPONSIVE ── */
 @media (max-width: 768px) {
   :root { --sidebar-w: 0px; }
   .sidebar { display: none; }
@@ -926,111 +998,158 @@ footer {
 </head>
 <body>
 
-<!-- ═══════════ LOGIN ═══════════ -->
+<!-- LOGIN -->
 <div id="loginScreen">
-  <div class="login-logo">⚡ Safe Boom</div>
+  <div class="login-logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="url(#lg1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <defs><linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7c4dff"/><stop offset="100%" stop-color="#b388ff"/></linearGradient></defs>
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
+    Safe Boom
+  </div>
   <div class="login-sub">Plateforme d'analyse — Paris Virtuels Bet261</div>
   <div class="login-card">
     <div class="login-field">
       <label>Mot de passe</label>
       <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
     </div>
-    <button class="login-btn" id="loginBtn">Se connecter</button>
-    <div class="login-error" id="loginError">⚠️ Mot de passe incorrect.</div>
+    <button class="login-btn" id="loginBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Se connecter
+    </button>
+    <div class="login-error" id="loginError">Mot de passe incorrect.</div>
   </div>
 </div>
 
-<!-- ═══════════ MAIN APP ═══════════ -->
+<!-- MAIN APP -->
 <div id="mainApp">
-
-  <!-- TOPBAR -->
   <div class="topbar">
-    <span class="topbar-logo"><span class="logo-icon">⚡</span> Safe Boom</span>
+    <span class="topbar-logo">
+      <span class="logo-icon">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </span>
+      Safe Boom
+    </span>
     <div class="topbar-search">
       <input type="text" placeholder="Rechercher un match...">
     </div>
     <div class="topbar-right">
-      <span class="topbar-badge" id="leagueBadge">🏴󠁧󠁢󠁥󠁮󠁧󠁿 English</span>
-      <button class="theme-btn" id="themeBtn" title="Changer de thème">🌙</button>
-      <button class="logout-btn" id="logoutBtn">Déconnexion</button>
+      <span class="topbar-badge" id="leagueBadge">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+        English
+      </span>
+      <button class="theme-btn" id="themeBtn" title="Changer de thème">
+        <svg id="themeIco" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="logout-btn" id="logoutBtn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Déconnexion
+      </button>
     </div>
   </div>
 
-  <!-- BODY -->
   <div class="app-body">
-
-    <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-section">
         <div class="sidebar-section-title">Navigation</div>
         <button class="sidebar-item active" id="navMatches">
-          <span class="si-icon">⚽</span> Matchs
+          <span class="si-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><line x1="2" y1="12" x2="22" y2="12"/></svg></span>
+          Matchs
           <span class="si-count" id="matchCountBadge">0</span>
         </button>
         <button class="sidebar-item" onclick="document.getElementById('summaryPanel').scrollIntoView({behavior:'smooth'})">
-          <span class="si-icon">📊</span> Récapitulatif
+          <span class="si-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+          Récapitulatif
         </button>
       </div>
-
       <hr class="sidebar-divider">
-
       <div class="sidebar-section">
         <div class="sidebar-section-title">Ligue</div>
         <div class="sidebar-league">
-          <button class="league-btn active-eng" id="btnEng" onclick="switchLeague('eng')">🏴󠁧󠁢󠁥󠁮󠁧󠁿 English League</button>
-          <button class="league-btn" id="btnCaf" onclick="switchLeague('caf')">🌍 Coupe d'Afrique</button>
+          <button class="league-btn active-eng" id="btnEng" onclick="switchLeague('eng')">
+            <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20M8 6v12"/></svg>
+            English League
+          </button>
+          <button class="league-btn" id="btnCaf" onclick="switchLeague('caf')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>
+            Coupe d'Afrique
+          </button>
         </div>
       </div>
-
       <hr class="sidebar-divider">
-
       <div class="sidebar-section">
         <div class="sidebar-section-title">Actions</div>
         <button class="sidebar-item" onclick="addMatchCard()">
-          <span class="si-icon">➕</span> Nouveau Match
+          <span class="si-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+          Nouveau Match
         </button>
         <button class="sidebar-item" onclick="analyzeAll()">
-          <span class="si-icon">⚡</span> Tout Analyser
+          <span class="si-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+          Tout Analyser
         </button>
       </div>
-
       <hr class="sidebar-divider">
-
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">IA — Entraînement</div>
+        <div class="ml-status-panel" id="mlStatusPanel">
+          <div class="ml-status-row"><span>Modèle résultat</span><span class="ml-status-val off" id="mlResActive">OFF</span></div>
+          <div class="ml-status-row"><span>Modèle score</span><span class="ml-status-val off" id="mlScActive">OFF</span></div>
+          <div class="ml-status-row"><span>Matchs appris</span><span class="ml-status-val num" id="mlSamples">0</span></div>
+          <div class="ml-status-row"><span>Précision 1X2</span><span class="ml-status-val num" id="mlAccRes">—</span></div>
+          <div class="ml-status-row"><span>Précision score</span><span class="ml-status-val num" id="mlAccSc">—</span></div>
+          <div class="ml-acc-bar"><div class="ml-acc-fill" id="mlAccBar" style="width:0%"></div></div>
+        </div>
+        <hr class="sidebar-divider" style="margin:0.5rem 0.2rem;">
+        <label id="globalImportBtn" title="Importer une image de résultats pour entraîner l'IA">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Importer Résultats (IA)
+          <input type="file" accept="image/*" id="globalResultsInput" onchange="onGlobalResultsFile(this)" style="display:none">
+        </label>
+        <div id="globalImportStatus"></div>
+      </div>
+      <hr class="sidebar-divider">
       <div class="sidebar-section">
         <div class="sidebar-section-title">Créateur</div>
-        <div style="padding: 0.4rem 0.7rem; font-size: 0.68rem; color: var(--text3);">
-          ⚡ Azarya Noel<br>
+        <div style="padding: 0.4rem 0.7rem; font-size: 0.68rem; color: var(--text3); line-height:1.8;">
+          Azarya Noel<br>
           <span style="font-size:0.6rem;">© 2026 Safe Boom</span>
         </div>
       </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="main-content">
-
-      <!-- Summary -->
       <div id="summaryPanel">
         <div class="summary-header">
-          <span>⚡ Récapitulatif des analyses</span>
+          <span>
+            <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Récapitulatif des analyses
+          </span>
           <span class="sum-count" id="sumCount">0 match analysé</span>
         </div>
         <div id="summaryRows"></div>
       </div>
 
-      <!-- Section header -->
       <div class="section-header">
-        <h2>📋 Matchs en cours</h2>
-        <button class="see-all-btn" onclick="addMatchCard()">+ Ajouter</button>
+        <h2>
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Matchs en cours
+        </h2>
+        <button class="see-all-btn" onclick="addMatchCard()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Ajouter
+        </button>
       </div>
 
-      <!-- Cards -->
       <div class="matches-wrapper" id="matchesWrapper"></div>
 
-      <button class="add-match-btn" id="addMatchBtn">＋ Ajouter un Match</button>
+      <button class="add-match-btn" id="addMatchBtn">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Ajouter un Match
+      </button>
       <div class="error-msg" id="errorMsg"></div>
 
       <footer>
-        ⚡ Safe Boom — Stratégie de paris sportifs virtuels<br>
+        Safe Boom — Stratégie de paris sportifs virtuels<br>
         <strong>© 2026 Azarya Noel</strong> — Tous droits réservés
       </footer>
     </main>
@@ -1045,29 +1164,40 @@ const CORRECT_PASSWORD = 'boom261#';
 const GEMINI_API_KEY_HARDCODED = 'AQ.Ab8RN6K634o3dXLpnlH1A4dKcNvEYELhmrXF0lCztmY81oOJXg';
 
 /* ════════════════════════════════════════
+   HEURE LOCALE
+════════════════════════════════════════ */
+function getCurrentLocalTime() {
+  const now = new Date();
+  return String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+}
+
+/* ════════════════════════════════════════
    THÈME
 ════════════════════════════════════════ */
 const themeBtn = document.getElementById('themeBtn');
+const themeIco = document.getElementById('themeIco');
+const moonPath = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+const sunPath  = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
 themeBtn.addEventListener('click', () => {
   const html = document.documentElement;
   const isDark = html.getAttribute('data-theme') === 'dark';
   html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-  themeBtn.textContent = isDark ? '🌙' : '☀️';
+  themeIco.innerHTML = isDark ? sunPath : moonPath;
 });
 
 /* ════════════════════════════════════════
    ÉQUIPES
 ════════════════════════════════════════ */
 const TEAMS_ENG = [
-  { group: "🔵 Grandes équipes", options: ["Manchester Red","Liverpool","Arsenal","Chelsea","Manchester City","Tottenham"] },
-  { group: "🟡 Moyennes", options: ["Newcastle","West Ham","Aston Villa","Brighton","Fulham","Crystal Palace"] },
-  { group: "🔴 Plus faibles", options: ["Bournemouth","Brentford","Wolverhampton","Everton","Nottingham Forest","Ipswich"] },
-  { group: "🟢 Autres", options: ["Leicester","Southampton","Sunderland","Leeds","Burnley"] },
+  { group: "Grandes équipes", options: ["Manchester Red","Liverpool","Arsenal","Chelsea","Manchester City","Tottenham"] },
+  { group: "Moyennes", options: ["Newcastle","West Ham","Aston Villa","Brighton","Fulham","Crystal Palace"] },
+  { group: "Plus faibles", options: ["Bournemouth","Brentford","Wolverhampton","Everton","Nottingham Forest","Ipswich"] },
+  { group: "Autres", options: ["Leicester","Southampton","Sunderland","Leeds","Burnley"] },
 ];
 const TEAMS_CAF = [
-  { group: "🟥 Équipes fortes", options: ["Sénégal","Maroc","Algérie","Côte d'Ivoire","Nigeria","Cameroun","Égypte"] },
-  { group: "🟧 Équipes moyennes", options: ["Mali","Burkina Faso","Tunisie","RD Congo","Afrique du Sud","Angola","Zambie","Gabon"] },
-  { group: "🟨 Équipes faibles", options: ["Comores","Ouganda","Tanzanie","Bénin","Botswana","Zimbabwe","Guinée équatoriale","Soudan","Mozambique"] },
+  { group: "Équipes fortes", options: ["Sénégal","Maroc","Algérie","Côte d'Ivoire","Nigeria","Cameroun","Égypte"] },
+  { group: "Équipes moyennes", options: ["Mali","Burkina Faso","Tunisie","RD Congo","Afrique du Sud","Angola","Zambie","Gabon"] },
+  { group: "Équipes faibles", options: ["Comores","Ouganda","Tanzanie","Bénin","Botswana","Zimbabwe","Guinée équatoriale","Soudan","Mozambique"] },
 ];
 const RANK_MAX = { eng: 20, caf: 32 };
 let currentLeague = 'eng';
@@ -1081,15 +1211,163 @@ function buildTeamOptions(selected) {
 }
 
 /* ════════════════════════════════════════
+   ALIASES D'ÉQUIPES — CORRECTION DOUBLONS
+   Permet de mapper les noms retournés par
+   l'IA vers les noms exacts de la liste
+════════════════════════════════════════ */
+const TEAM_ALIASES_ENG = {
+  // Manchester United / Red
+  'manchester united': 'Manchester Red',
+  'man united':        'Manchester Red',
+  'man utd':           'Manchester Red',
+  'manchester utd':    'Manchester Red',
+  'man red':           'Manchester Red',
+  'united':            'Manchester Red',
+  // Manchester City
+  'manchester city':   'Manchester City',
+  'man city':          'Manchester City',
+  'city':              'Manchester City',
+  // Liverpool
+  'liverpool':         'Liverpool',
+  'liverpool fc':      'Liverpool',
+  // Arsenal
+  'arsenal':           'Arsenal',
+  'arsenal fc':        'Arsenal',
+  'the gunners':       'Arsenal',
+  // Chelsea
+  'chelsea':           'Chelsea',
+  'chelsea fc':        'Chelsea',
+  'the blues':         'Chelsea',
+  // Tottenham
+  'tottenham':         'Tottenham',
+  'spurs':             'Tottenham',
+  'tottenham hotspur': 'Tottenham',
+  'thfc':              'Tottenham',
+  // Newcastle
+  'newcastle':         'Newcastle',
+  'newcastle united':  'Newcastle',
+  'nufc':              'Newcastle',
+  // West Ham
+  'west ham':          'West Ham',
+  'west ham united':   'West Ham',
+  'hammers':           'West Ham',
+  // Aston Villa
+  'aston villa':       'Aston Villa',
+  'villa':             'Aston Villa',
+  // Brighton
+  'brighton':          'Brighton',
+  'brighton & hove':   'Brighton',
+  'seagulls':          'Brighton',
+  // Fulham
+  'fulham':            'Fulham',
+  'fulham fc':         'Fulham',
+  // Crystal Palace
+  'crystal palace':    'Crystal Palace',
+  'palace':            'Crystal Palace',
+  // Bournemouth
+  'bournemouth':       'Bournemouth',
+  'afc bournemouth':   'Bournemouth',
+  'the cherries':      'Bournemouth',
+  // Brentford
+  'brentford':         'Brentford',
+  'brentford fc':      'Brentford',
+  // Wolverhampton
+  'wolverhampton':     'Wolverhampton',
+  'wolves':            'Wolverhampton',
+  'wolverhampton w':   'Wolverhampton',
+  // Everton
+  'everton':           'Everton',
+  'everton fc':        'Everton',
+  'the toffees':       'Everton',
+  // Nottingham Forest
+  'nottingham forest': 'Nottingham Forest',
+  'forest':            'Nottingham Forest',
+  'nffc':              'Nottingham Forest',
+  // Ipswich
+  'ipswich':           'Ipswich',
+  'ipswich town':      'Ipswich',
+  // Leicester
+  'leicester':         'Leicester',
+  'leicester city':    'Leicester',
+  'foxes':             'Leicester',
+  // Southampton
+  'southampton':       'Southampton',
+  'the saints':        'Southampton',
+  // Sunderland
+  'sunderland':        'Sunderland',
+  'sunderland afc':    'Sunderland',
+  // Leeds
+  'leeds':             'Leeds',
+  'leeds united':      'Leeds',
+  // Burnley
+  'burnley':           'Burnley',
+  'burnley fc':        'Burnley',
+};
+
+const TEAM_ALIASES_CAF = {
+  'senegal':           'Sénégal',
+  'sénégal':           'Sénégal',
+  'morocco':           'Maroc',
+  'maroc':             'Maroc',
+  'algeria':           'Algérie',
+  'algérie':           'Algérie',
+  "ivory coast":       "Côte d'Ivoire",
+  "cote d'ivoire":     "Côte d'Ivoire",
+  "côte d'ivoire":     "Côte d'Ivoire",
+  'nigeria':           'Nigeria',
+  'cameroon':          'Cameroun',
+  'cameroun':          'Cameroun',
+  'egypt':             'Égypte',
+  'égypte':            'Égypte',
+  'mali':              'Mali',
+  'burkina faso':      'Burkina Faso',
+  'burkina':           'Burkina Faso',
+  'tunisia':           'Tunisie',
+  'tunisie':           'Tunisie',
+  'dr congo':          'RD Congo',
+  'drc':               'RD Congo',
+  'rd congo':          'RD Congo',
+  'democratic republic of congo': 'RD Congo',
+  'south africa':      'Afrique du Sud',
+  'afrique du sud':    'Afrique du Sud',
+  'angola':            'Angola',
+  'zambia':            'Zambie',
+  'zambie':            'Zambie',
+  'gabon':             'Gabon',
+  'comoros':           'Comores',
+  'comores':           'Comores',
+  'uganda':            'Ouganda',
+  'ouganda':           'Ouganda',
+  'tanzania':          'Tanzanie',
+  'tanzanie':          'Tanzanie',
+  'benin':             'Bénin',
+  'bénin':             'Bénin',
+  'botswana':          'Botswana',
+  'zimbabwe':          'Zimbabwe',
+  'equatorial guinea': 'Guinée équatoriale',
+  'guinée équatoriale':'Guinée équatoriale',
+  'sudan':             'Soudan',
+  'soudan':            'Soudan',
+  'mozambique':        'Mozambique',
+};
+
+function getAliases() {
+  return currentLeague === 'eng' ? TEAM_ALIASES_ENG : TEAM_ALIASES_CAF;
+}
+
+/* ════════════════════════════════════════
    SWITCH LEAGUE
 ════════════════════════════════════════ */
 function switchLeague(league) {
   currentLeague = league;
   document.getElementById('btnEng').className = 'league-btn' + (league==='eng' ? ' active-eng' : '');
   document.getElementById('btnCaf').className = 'league-btn' + (league==='caf' ? ' active-caf' : '');
-  document.getElementById('leagueBadge').textContent = league === 'eng' ? '🏴󠁧󠁢󠁥󠁮󠁧󠁿 English' : '🌍 CAN';
+  const badge = document.getElementById('leagueBadge');
+  const ico = badge.querySelector('svg').outerHTML;
+  badge.innerHTML = ico + (league === 'eng' ? ' English' : ' CAN');
   document.getElementById('matchesWrapper').innerHTML = '';
   Object.keys(results).forEach(k => delete results[k]);
+  Object.keys(scanFiles).forEach(k => delete scanFiles[k]);
   matchCount = 0;
   updateSummary();
   addMatchCard();
@@ -1115,9 +1393,9 @@ function buildFormSlots(cardId, side, defaults) {
     <div class="form-slot">
       <span class="slot-num">J-${n}</span>
       <select class="form-sel-${side}" data-idx="${i}" onchange="onFormChange(${cardId},'${side}',${i},this)">
-        <option value="W"${d[i]==='W'?' selected':''}>✔</option>
-        <option value="D"${d[i]==='D'?' selected':''}>–</option>
-        <option value="L"${d[i]==='L'?' selected':''}>✘</option>
+        <option value="W"${d[i]==='W'?' selected':''}>V</option>
+        <option value="D"${d[i]==='D'?' selected':''}>=</option>
+        <option value="L"${d[i]==='L'?' selected':''}>D</option>
       </select>
     </div>`).join('')}</div>`;
 }
@@ -1188,69 +1466,107 @@ function autoFillCard(id) {
 /* ════════════════════════════════════════
    CARTE MATCH
 ════════════════════════════════════════ */
-function addMatchCard(teamA='', teamB='', time='07:00', rankA=1, rankB=10, formA=null, formB=null) {
+function addMatchCard(teamA='', teamB='', time=null, rankA=1, rankB=10, formA=null, formB=null) {
   matchCount++;
   const id = matchCount;
   const fA = formA||['W','W','D','W','W'];
   const fB = formB||['L','W','D','L','W'];
   const rMax = RANK_MAX[currentLeague];
+  const matchTime = time || getCurrentLocalTime();
 
   const card = document.createElement('div');
   card.className = 'match-card';
   card.dataset.id = id;
+  card.dataset.reserved = 'false';
   card.innerHTML = `
-    <!-- Card thumbnail header -->
     <div class="card-thumb">
       <div class="card-thumb-left">
         <div class="card-num-badge">${id}</div>
         <span class="match-label">Match ${id}</span>
       </div>
       <div style="display:flex;align-items:center;gap:0.5rem;">
-        <span class="match-time-badge" id="timeBadge_${id}">${time}</span>
-        <button class="remove-btn" onclick="removeCard(${id})" title="Supprimer">✕</button>
+        <span class="match-time-badge" id="timeBadge_${id}">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${matchTime}
+        </span>
+        <button class="remove-btn" onclick="removeCard(${id})" title="Supprimer">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
     </div>
-
     <div class="card-body">
-
-      <!-- SCANNER -->
       <div class="scanner-zone">
-        <div class="scanner-title">📷 Scanner captures Bet261</div>
+        <div class="scanner-title">
+          <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Scanner captures Bet261
+        </div>
         <div class="scanner-grid">
           <div class="scan-upload-box" id="scanBoxOdds_${id}">
             <input type="file" accept="image/*" onchange="onScanFile(${id},'odds',this)">
-            <span class="scan-icon">🎯</span>
-            <span class="scan-label">Cotes<br>1X2·Over·GG</span>
+            <span class="scan-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></span>
+            <span class="scan-label">Cotes 1X2 · Over · GG</span>
             <img class="thumb-preview" id="thumbOdds_${id}">
           </div>
           <div class="scan-upload-box" id="scanBoxRank_${id}">
             <input type="file" accept="image/*" onchange="onScanFile(${id},'rank',this)">
-            <span class="scan-icon">📊</span>
-            <span class="scan-label">Classement<br>Rang·Pts·Forme</span>
+            <span class="scan-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+            <span class="scan-label">Classement · Rang · Forme</span>
             <img class="thumb-preview" id="thumbRank_${id}">
           </div>
         </div>
         <button class="scan-btn" id="scanBtn_${id}" onclick="runScan(${id})" disabled>
-          🔍 Analyser avec l'IA
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Analyser avec l'IA
         </button>
         <div class="scan-status" id="scanStatus_${id}"></div>
+
+        <!-- ZONE RÉSULTATS RÉELS → APPRENTISSAGE IA -->
+        <div class="results-scan-zone" id="resultsScanZone_${id}">
+          <div class="results-scan-title">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Résultat réel du match — Apprendre à l'IA
+          </div>
+          <div class="results-upload-row">
+            <label class="results-upload-label">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Photo résultat
+              <input type="file" accept="image/*" onchange="onResultsFile(${id}, this)">
+            </label>
+            <img class="results-thumb" id="resultsThumb_${id}">
+            <button class="results-scan-btn" id="resultsScanBtn_${id}" onclick="runResultsScan(${id})" disabled>
+              <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              Entraîner IA
+            </button>
+          </div>
+          <div class="results-status" id="resultsStatus_${id}"></div>
+        </div>
       </div>
 
-      <!-- HEURE -->
-      <div class="sec-title">🕐 Heure du match</div>
+      <div class="sec-title">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Heure du match
+      </div>
       <div class="time-row">
-        <input type="time" class="match-time" value="${time}" onchange="document.getElementById('timeBadge_${id}').textContent=this.value">
+        <input type="time" class="match-time" value="${matchTime}" onchange="updateTimeBadge(${id},this.value)">
+        <button class="time-now-btn" onclick="setTimeNow(${id})" title="Heure actuelle">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Maintenant
+        </button>
       </div>
 
-      <!-- ÉQUIPES -->
-      <div class="sec-title">🏆 Équipes</div>
+      <div class="sec-title">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Équipes
+      </div>
       <div class="teams-row">
         <div class="team-col"><label>Équipe 1</label><select class="teamA">${buildTeamOptions(teamA)}</select></div>
         <div class="team-col"><label>Équipe 2</label><select class="teamB">${buildTeamOptions(teamB)}</select></div>
       </div>
 
-      <!-- CLASSEMENT -->
-      <div class="sec-title">📊 Classement</div>
+      <div class="sec-title">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Classement
+      </div>
       <div class="rank-row">
         <div class="rank-col"><label>Rang Équipe 1</label><input type="number" class="rankA" value="${rankA}" min="1" max="${rMax}"></div>
         <div class="rank-col"><label>Rang Équipe 2</label><input type="number" class="rankB" value="${rankB}" min="1" max="${rMax}"></div>
@@ -1259,8 +1575,10 @@ function addMatchCard(teamA='', teamB='', time='07:00', rankA=1, rankB=10, formA
         <span>Écart :</span><span class="gap-value">—</span><span>places</span>
       </div>
 
-      <!-- FORME -->
-      <div class="sec-title">📈 Forme récente (5 matchs)</div>
+      <div class="sec-title">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Forme récente (5 matchs)
+      </div>
       <div class="form-section">
         <div class="form-teams-row">
           <div>
@@ -1276,16 +1594,20 @@ function addMatchCard(teamA='', teamB='', time='07:00', rankA=1, rankB=10, formA
         </div>
       </div>
 
-      <!-- COTES 1X2 -->
-      <div class="sec-title">💰 Cotes 1X2</div>
+      <div class="sec-title">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Cotes 1X2
+      </div>
       <div class="odds-row">
         <div class="odd-box"><label>Cote 1</label><input type="number" class="coteA" placeholder="1.52" step="0.01" min="1.01"></div>
         <div class="odd-box"><label>Cote X</label><input type="number" class="coteX" placeholder="4.38" step="0.01" min="1.01"></div>
         <div class="odd-box"><label>Cote 2</label><input type="number" class="coteB" placeholder="5.78" step="0.01" min="1.01"></div>
       </div>
 
-      <!-- OVER/UNDER -->
-      <div class="sec-title">📉 Over / Under</div>
+      <div class="sec-title">
+        <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        Over / Under
+      </div>
       <div class="extra-markets-grid">
         <div class="extra-box"><label>Over 2.5</label><input type="number" class="over25" placeholder="2.10" step="0.01" min="1.01"></div>
         <div class="extra-box"><label>Under 2.5</label><input type="number" class="under25" placeholder="1.72" step="0.01" min="1.01"></div>
@@ -1293,8 +1615,10 @@ function addMatchCard(teamA='', teamB='', time='07:00', rankA=1, rankB=10, formA
         <div class="extra-box"><label>Under 1.5</label><input type="number" class="under15" placeholder="2.60" step="0.01" min="1.01"></div>
       </div>
 
-      <!-- GG / DC -->
-      <div class="sec-title">⚽ GG / NG & Double Chance</div>
+      <div class="sec-title">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        GG / NG &amp; Double Chance
+      </div>
       <div class="extra-markets-grid">
         <div class="extra-box"><label>GG</label><input type="number" class="coteGG" placeholder="1.80" step="0.01" min="1.01"></div>
         <div class="extra-box"><label>NG</label><input type="number" class="coteNG" placeholder="1.95" step="0.01" min="1.01"></div>
@@ -1302,14 +1626,20 @@ function addMatchCard(teamA='', teamB='', time='07:00', rankA=1, rankB=10, formA
         <div class="extra-box"><label>DC X2</label><input type="number" class="coteDCX2" placeholder="1.55" step="0.01" min="1.01"></div>
       </div>
 
-      <button class="autofill-btn" onclick="autoFillCard(${id})">⚡ Remplissage automatique</button>
+      <button class="autofill-btn" onclick="autoFillCard(${id})">
+        <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Remplissage automatique
+      </button>
       <button class="card-analyse-btn" onclick="analyzeCard(${id})">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         Analyser ce match
       </button>
 
       <div class="card-result" id="cardResult_${id}">
-        <div class="cr-label">✅ Résultat d'analyse</div>
+        <div class="cr-label">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Résultat d'analyse
+        </div>
         <div class="cr-row" id="crRow_${id}"></div>
       </div>
     </div>
@@ -1332,6 +1662,9 @@ function addMatchCard(teamA='', teamB='', time='07:00', rankA=1, rankB=10, formA
   rB.addEventListener('input', updateGap);
   updateGap();
 
+  const timeInput = card.querySelector('.match-time');
+  timeInput.addEventListener('change', () => updateTimeBadge(id, timeInput.value));
+
   card.querySelectorAll('input, select').forEach(el => {
     el.addEventListener('change', () => { if (results[id]) analyzeCard(id); });
   });
@@ -1339,16 +1672,106 @@ function addMatchCard(teamA='', teamB='', time='07:00', rankA=1, rankB=10, formA
   updateMatchCountBadge();
 }
 
+/* ════════════════════════════════════════
+   BADGE HEURE
+════════════════════════════════════════ */
+function updateTimeBadge(id, val) {
+  const badge = document.getElementById(`timeBadge_${id}`);
+  if (!badge) return;
+  const clockSVG = `<svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:var(--accent2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  badge.innerHTML = clockSVG + ' ' + val;
+}
+
+function setTimeNow(id) {
+  const card = document.querySelector(`.match-card[data-id="${id}"]`);
+  if (!card) return;
+  const now = getCurrentLocalTime();
+  const input = card.querySelector('.match-time');
+  input.value = now;
+  updateTimeBadge(id, now);
+  if (results[id]) analyzeCard(id);
+}
+
 function removeCard(id) {
   const card = document.querySelector(`.match-card[data-id="${id}"]`);
   if (card) card.remove();
   delete results[id];
-  document.querySelectorAll('.match-card').forEach((c,i) => {
-    c.querySelector('.match-label').textContent = `Match ${i+1}`;
-    c.querySelector('.card-num-badge').textContent = i+1;
-  });
+  delete scanFiles[id];
+  renumberCards();
   updateSummary();
   updateMatchCountBadge();
+}
+
+function renumberCards() {
+  document.querySelectorAll('.match-card').forEach((c, i) => {
+    const newId = i + 1;
+    const oldId = parseInt(c.dataset.id);
+    if (oldId === newId) return;
+    c.dataset.id = newId;
+    c.querySelector('.match-label').textContent = `Match ${newId}`;
+    c.querySelector('.card-num-badge').textContent = newId;
+    if (results[oldId]) { results[newId] = results[oldId]; delete results[oldId]; }
+    if (scanFiles[oldId]) { scanFiles[newId] = scanFiles[oldId]; delete scanFiles[oldId]; }
+    const ids = ['timeBadge','rankGap','formBarA','formBarB','cardResult','crRow',
+                 'scanBoxOdds','scanBoxRank','thumbOdds','thumbRank','scanBtn','scanStatus'];
+    ids.forEach(prefix => {
+      const el = document.getElementById(`${prefix}_${oldId}`);
+      if (el) el.id = `${prefix}_${newId}`;
+    });
+    const scanBtn = c.querySelector('.scan-btn');
+    if (scanBtn) scanBtn.setAttribute('onclick', `runScan(${newId})`);
+    const autofillBtn = c.querySelector('.autofill-btn');
+    if (autofillBtn) autofillBtn.setAttribute('onclick', `autoFillCard(${newId})`);
+    const analyseBtn = c.querySelector('.card-analyse-btn');
+    if (analyseBtn) analyseBtn.setAttribute('onclick', `analyzeCard(${newId})`);
+    const removeBtn = c.querySelector('.remove-btn');
+    if (removeBtn) removeBtn.setAttribute('onclick', `removeCard(${newId})`);
+    const timeNowBtn = c.querySelector('.time-now-btn');
+    if (timeNowBtn) timeNowBtn.setAttribute('onclick', `setTimeNow(${newId})`);
+    c.querySelectorAll('.form-sel-A, .form-sel-B').forEach(sel => {
+      const oc = sel.getAttribute('onchange');
+      if (oc) sel.setAttribute('onchange', oc.replace(/onFormChange\(\d+/, `onFormChange(${newId}`));
+    });
+    const scanInputs = c.querySelectorAll('input[type="file"]');
+    scanInputs.forEach(inp => {
+      const oc = inp.getAttribute('onchange');
+      if (oc) inp.setAttribute('onchange', oc.replace(/onScanFile\(\d+/, `onScanFile(${newId}`));
+    });
+  });
+  matchCount = document.querySelectorAll('.match-card').length;
+}
+
+/* ════════════════════════════════════════
+   VÉRIFIER SI UNE CARTE EST VIDE
+════════════════════════════════════════ */
+function isCardEmpty(card) {
+  const id = parseInt(card.dataset.id);
+  const coteA = parseFloat(card.querySelector('.coteA').value);
+  const hasResult = !!results[id];
+  const isReserved = card.dataset.reserved === 'true';
+  return !hasResult && !isReserved && (isNaN(coteA) || coteA <= 1.01);
+}
+
+/* ════════════════════════════════════════
+   NETTOYER LES CARTES VIDES
+════════════════════════════════════════ */
+function cleanEmptyCards() {
+  const cards = [...document.querySelectorAll('.match-card')];
+  if (cards.length <= 1) return;
+  let removed = false;
+  cards.forEach(card => {
+    if (isCardEmpty(card)) {
+      const id = parseInt(card.dataset.id);
+      delete results[id];
+      delete scanFiles[id];
+      card.remove();
+      removed = true;
+    }
+  });
+  if (removed) {
+    renumberCards();
+    updateMatchCountBadge();
+  }
 }
 
 /* ════════════════════════════════════════
@@ -1375,19 +1798,20 @@ function getReliability(coteFav, rankA, rankB, outcome, fA, fB) {
   return {stars:labels[score],label:texts[score],score,rankConfirms,gap,fsA,fsB,formDiff:fd,formConfirms,formNeutral};
 }
 function rankConfTag(rel) {
-  if (rel.score>=4&&rel.rankConfirms&&rel.formConfirms) return {cls:'high',txt:'✔ Confirmé'};
-  if (rel.score<=2||(!rel.rankConfirms&&!rel.formConfirms)) return {cls:'low',txt:'✘ Divergent'};
-  return {cls:'med',txt:'~ Neutre'};
+  if (rel.score>=4&&rel.rankConfirms&&rel.formConfirms) return {cls:'high',txt:'Confirmé'};
+  if (rel.score<=2||(!rel.rankConfirms&&!rel.formConfirms)) return {cls:'low',txt:'Divergent'};
+  return {cls:'med',txt:'Neutre'};
 }
 
 /* ════════════════════════════════════════
-   ANALYSE
+   ANALYSE (ML + fallback local)
 ════════════════════════════════════════ */
-function analyzeCard(id) {
+async function analyzeCard(id) {
   const card = document.querySelector(`.match-card[data-id="${id}"]`);
   if (!card) return;
   const coteA=parseFloat(card.querySelector('.coteA').value);
   const coteB=parseFloat(card.querySelector('.coteB').value);
+  const coteX=parseFloat(card.querySelector('.coteX').value)||3.5;
   const teamA=card.querySelector('.teamA').value;
   const teamB=card.querySelector('.teamB').value;
   const rankA=parseInt(card.querySelector('.rankA').value)||10;
@@ -1405,27 +1829,89 @@ function analyzeCard(id) {
 
   if (isNaN(coteA)||isNaN(coteB)||coteA<=1||coteB<=1) {
     const el=document.getElementById('errorMsg');
-    el.textContent=`⚠️ Match ${id} : remplissez les cotes 1X2 (> 1).`;
+    el.textContent=`Match ${id} : remplissez les cotes 1X2 (> 1).`;
     el.classList.add('show');
     setTimeout(()=>el.classList.remove('show'),3000);
     return;
   }
   document.getElementById('errorMsg').classList.remove('show');
 
-  const coteFav=Math.min(coteA,coteB);
-  let outcome,score,total;
-  if      (coteFav<=1.20) { outcome=coteA<=coteB?'1':'2'; score='4-0'; total=2; }
-  else if (coteFav<1.50)  { outcome=coteA<=coteB?'1':'2'; score='2-0'; total=2; }
-  else if (coteFav<=2.20) { outcome=coteA<=coteB?'1':'2'; score='2-1'; total=3; }
-  else                    { outcome='X'; score='2-2'; total=4; }
+  // Récupérer le classement depuis les données scannées si disponible
+  const rankings = (window.scanData && window.scanData[id] && window.scanData[id].rankings) || [];
 
-  const rel=getReliability(coteFav,rankA,rankB,outcome,fA,fB);
-  const conf=rankConfTag(rel);
-  const gapLabel=rel.gap>=7?'↑↑ Grand écart':rel.gap>=4?'→ Modéré':'≈ Proches';
-  const recGG=coteGG?(coteGG<2.00?'✅ GG':'❌ GG'):null;
-  const recDC=(dc1x&&dcx2)?(dc1x<=dcx2?`✅ DC 1X (${dc1x})`:`✅ DC X2 (${dcx2})`):null;
+  // Données du match pour le serveur ML
+  const matchData = {
+    teamA, teamB,
+    cote1: coteA, coteX, cote2: coteB,
+    over25, under25, over15, under15,
+    coteGG, coteNG, dc1x, dcx2,
+    formA: fA, formB: fB
+  };
+
+  // Stocker pour feedback futur
+  if (!window.matchPayloads) window.matchPayloads = {};
+  window.matchPayloads[id] = { match: matchData, rankings };
+
+  // ── Tentative appel ML ──
+  let mlResult = null;
+  try {
+    const resp = await fetch('/predict', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ match: matchData, rankings })
+    });
+    if (resp.ok) mlResult = await resp.json();
+  } catch(e) { /* serveur non dispo → fallback local */ }
+
+  let outcome, score, total, conf, rel, mlBadge = '';
+
+  if (mlResult && !mlResult.error) {
+    // ── Résultat ML ──
+    outcome = mlResult.prediction;
+    score   = mlResult.top_score || '1-0';
+    const p = mlResult.probabilities || {};
+    const confVal = mlResult.confidence || 60;
+
+    // Calcul total depuis le score prédit
+    const scoreParts = score.split('-').map(Number);
+    total = (scoreParts[0]||0) + (scoreParts[1]||0);
+
+    // Top 3 scores
+    const topScores = (mlResult.scores || []).slice(0, 3);
+    const scoresHtml = topScores.map(([s,pct],i) =>
+      `<span style="font-size:${i===0?'0.88':'0.72'}rem;font-weight:${i===0?800:600};color:${i===0?'var(--blue)':'var(--text2)'};">${s} <span style="font-size:0.6rem;opacity:0.7;">${pct}%</span></span>`
+    ).join(' · ');
+
+    const accRes = mlResult.accuracy_result || 0;
+    const trainedOn = mlResult.trained_on || 0;
+    mlBadge = `<div style="width:100%;margin-top:0.4rem;background:#7c4dff14;border:1px solid var(--accent-glow);border-radius:7px;padding:0.32rem 0.6rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+      <span style="font-size:0.58rem;color:var(--accent2);font-weight:700;">🧠 ML v${mlResult.strategy_version||1} · ${trainedOn} matchs · ${accRes}%</span>
+      <span style="font-size:0.62rem;color:var(--text2);">1:<b style="color:#7c4dff">${p['1']||0}%</b> X:<b style="color:#7c4dff">${p['X']||0}%</b> 2:<b style="color:#7c4dff">${p['2']||0}%</b></span>
+    </div>
+    <div style="width:100%;margin-top:0.3rem;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+      <span style="font-size:0.58rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Scores probables :</span>
+      ${scoresHtml}
+    </div>`;
+
+    rel = getReliability(Math.min(coteA,coteB),rankA,rankB,outcome,fA,fB);
+    conf = { cls: confVal>=70?'high':confVal>=55?'med':'low', txt: confVal>=70?'Fort':confVal>=55?'Moyen':'Faible' };
+
+  } else {
+    // ── Fallback local ──
+    const coteFav=Math.min(coteA,coteB);
+    if      (coteFav<=1.20) { outcome=coteA<=coteB?'1':'2'; score='4-0'; total=2; }
+    else if (coteFav<1.50)  { outcome=coteA<=coteB?'1':'2'; score='2-0'; total=2; }
+    else if (coteFav<=2.20) { outcome=coteA<=coteB?'1':'2'; score='2-1'; total=3; }
+    else                    { outcome='X'; score='2-2'; total=4; }
+    rel = getReliability(Math.min(coteA,coteB),rankA,rankB,outcome,fA,fB);
+    conf = rankConfTag(rel);
+  }
+
+  const gapLabel=rel.gap>=7?'Grand écart':rel.gap>=4?'Modéré':'Proches';
+  const recGG=coteGG?(coteGG<2.00?'GG':'NG'):null;
+  const recDC=(dc1x&&dcx2)?(dc1x<=dcx2?`DC 1X (${dc1x})`:`DC X2 (${dcx2})`):null;
   let overRec='—';
-  if (total<=2) overRec='Under 2.5'; else if (total===3) overRec='Over 2.5'; else overRec='Over 2.5 ⚠';
+  if (total<=2) overRec='Under 2.5'; else overRec='Over 2.5';
 
   results[id]={id,teamA,teamB,time,outcome,score,total,rel,conf,rankA,rankB,overRec};
 
@@ -1439,6 +1925,7 @@ function analyzeCard(id) {
     <div class="cr-chip cr-rel"><span class="ch-label">#${rankA} vs #${rankB} · ${gapLabel}</span><span class="ch-value">${rel.stars}</span></div>
     <div class="cr-chip cr-form"><span class="ch-label">Forme</span><span class="ch-value">${rel.fsA}/15 vs ${rel.fsB}/15</span></div>
     <span class="cr-conf-badge ${conf.cls}">${conf.txt}</span>
+    ${mlBadge}
   `;
   document.getElementById(`cardResult_${id}`).classList.add('show');
   updateSummary();
@@ -1479,7 +1966,7 @@ function doLogin() {
     window.GEMINI_API_KEY=GEMINI_API_KEY_HARDCODED;
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('mainApp').classList.add('show');
-    addMatchCard('Manchester Red','Sunderland','07:00',8,19,['W','W','D','W','W'],['L','L','D','L','W']);
+    addMatchCard('Manchester Red','Sunderland',null,8,19,['W','W','D','W','W'],['L','L','D','L','W']);
   } else {
     document.getElementById('loginError').classList.add('show');
     document.getElementById('loginPassword').value='';
@@ -1489,7 +1976,6 @@ function doLogin() {
 document.getElementById('loginBtn').addEventListener('click', doLogin);
 document.getElementById('loginPassword').addEventListener('keypress', e=>{ if(e.key==='Enter') doLogin(); });
 document.getElementById('addMatchBtn').addEventListener('click', ()=>addMatchCard());
-
 document.getElementById('logoutBtn').addEventListener('click', ()=>{
   document.getElementById('mainApp').classList.remove('show');
   document.getElementById('loginScreen').style.display='flex';
@@ -1498,10 +1984,12 @@ document.getElementById('logoutBtn').addEventListener('click', ()=>{
   document.getElementById('matchesWrapper').innerHTML='';
   document.getElementById('summaryPanel').classList.remove('show');
   Object.keys(results).forEach(k=>delete results[k]);
+  Object.keys(scanFiles).forEach(k=>delete scanFiles[k]);
   matchCount=0; currentLeague='eng';
   document.getElementById('btnEng').className='league-btn active-eng';
   document.getElementById('btnCaf').className='league-btn';
-  document.getElementById('leagueBadge').textContent='🏴󠁧󠁢󠁥󠁮󠁧󠁿 English';
+  const badge=document.getElementById('leagueBadge');
+  badge.innerHTML=badge.querySelector('svg').outerHTML+' English';
   updateMatchCountBadge();
 });
 
@@ -1526,11 +2014,14 @@ async function runScan(id) {
   const btn=document.getElementById(`scanBtn_${id}`);
   const status=document.getElementById(`scanStatus_${id}`);
   const card=document.querySelector(`.match-card[data-id="${id}"]`);
-  btn.disabled=true; btn.textContent='⏳ Analyse en cours…';
+
+  btn.disabled=true;
+  btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Analyse en cours...`;
   status.className='scan-status show loading';
-  status.textContent='🤖 IA en cours d\'analyse…';
+  status.textContent='IA en cours d\'analyse...';
   if (sf.odds) document.getElementById(`scanBoxOdds_${id}`).classList.add('scanning');
   if (sf.rank) document.getElementById(`scanBoxRank_${id}`).classList.add('scanning');
+
   try {
     const formData=new FormData();
     if (sf.odds) formData.append('odds',sf.odds);
@@ -1538,88 +2029,462 @@ async function runScan(id) {
     const resp=await fetch('/scan',{method:'POST',headers:{'X-Gemini-Api-Key':window.GEMINI_API_KEY||''},body:formData});
     const data=await resp.json();
     if (!resp.ok) throw new Error(data.error||JSON.stringify(data));
-
     if (!window.scanData) window.scanData={};
     window.scanData[id]=data;
-    applyScannedData(id,data,card);
 
-    status.className='scan-status show success';
+    applyScannedData(id, data, card);
+    setTimeout(() => analyzeCard(id), 400);
+
     const nm=(data.matches||[]).length, nr=(data.rankings||[]).length;
-    status.textContent=`✅ ${nm} match(s) · ${nr} équipe(s) extraits`;
+    status.className='scan-status show success';
+    status.textContent=`${nm} match(s) · ${nr} équipe(s) extraits`;
 
-    // ══ AUTO-ANALYSE APRÈS SCAN ══
-    setTimeout(()=>{ analyzeCard(id); }, 400);
+    if (nm > 1) {
+      setTimeout(() => distributeMatches(id, data), 600);
+    } else {
+      setTimeout(() => cleanEmptyCards(), 800);
+    }
 
-    if (nm>1) setTimeout(()=>distributeMatches(id,data),300);
   } catch(err) {
     status.className='scan-status show error';
-    status.textContent='❌ '+err.message;
+    status.textContent='Erreur : '+err.message;
   } finally {
-    btn.disabled=false; btn.innerHTML='🔍 Analyser avec l\'IA';
+    btn.disabled=false;
+    btn.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Analyser avec l'IA`;
     if (sf.odds) document.getElementById(`scanBoxOdds_${id}`).classList.remove('scanning');
     if (sf.rank) document.getElementById(`scanBoxRank_${id}`).classList.remove('scanning');
   }
 }
 
-function applyScannedData(id,parsed,card) {
+function applyScannedData(id, parsed, card) {
   const matches=parsed.matches||[], rankings=parsed.rankings||[];
-  if (matches.length>0) applyMatchToCard(id,matches[0],rankings,card);
-  else if (rankings.length>0) applyRankingsToCard(id,rankings,card);
+  if (matches.length>0) applyMatchToCard(id, matches[0], rankings, card);
+  else if (rankings.length>0) applyRankingsToCard(id, rankings, card);
 }
-function applyMatchToCard(id,m,rankings,card) {
-  setSelectByText(card.querySelector('.teamA'),m.teamA);
-  setSelectByText(card.querySelector('.teamB'),m.teamB);
-  const fields=[['coteA','cote1'],['coteX','coteX'],['coteB','cote2'],['over25','over25'],
-    ['under25','under25'],['over15','over15'],['under15','under15'],['coteGG','coteGG'],
-    ['coteNG','coteNG'],['coteDC1X','dc1x'],['coteDCX2','dcx2']];
+
+function applyMatchToCard(id, m, rankings, card) {
+  if (!card) card = document.querySelector(`.match-card[data-id="${id}"]`);
+  if (!card) return;
+  setSelectByText(card.querySelector('.teamA'), m.teamA);
+  setSelectByText(card.querySelector('.teamB'), m.teamB);
+  const fields=[
+    ['coteA','cote1'],['coteX','coteX'],['coteB','cote2'],
+    ['over25','over25'],['under25','under25'],['over15','over15'],['under15','under15'],
+    ['coteGG','coteGG'],['coteNG','coteNG'],['coteDC1X','dc1x'],['coteDCX2','dcx2']
+  ];
   fields.forEach(([cls,key])=>{ if(m[key]) card.querySelector('.'+cls).value=m[key]; });
-  if (rankings.length>0) applyRankingsToCard(id,rankings,card,m.teamA,m.teamB);
+  if (rankings.length>0) applyRankingsToCard(id, rankings, card, m.teamA, m.teamB);
 }
-function applyRankingsToCard(id,rankings,card,tA,tB) {
-  const findRank=name=>{
+
+function applyRankingsToCard(id, rankings, card, tA, tB) {
+  if (!card) card = document.querySelector(`.match-card[data-id="${id}"]`);
+  if (!card) return;
+  const findRank = name => {
     if (!name) return null;
-    const n=name.toLowerCase().trim();
-    return rankings.find(r=>r.team&&r.team.toLowerCase().includes(n.split(' ')[0]));
+    const n = name.toLowerCase().trim();
+    return rankings.find(r => r.team && r.team.toLowerCase().includes(n.split(' ')[0]));
   };
-  const rA=findRank(tA||card.querySelector('.teamA').value);
-  const rB=findRank(tB||card.querySelector('.teamB').value);
+  const rA = findRank(tA || card.querySelector('.teamA').value);
+  const rB = findRank(tB || card.querySelector('.teamB').value);
   if (rA) { card.querySelector('.rankA').value=rA.rank; if(rA.form?.length===5) setFormSlots(card,'A',rA.form,id); }
   if (rB) { card.querySelector('.rankB').value=rB.rank; if(rB.form?.length===5) setFormSlots(card,'B',rB.form,id); }
   card.querySelector('.rankA').dispatchEvent(new Event('input'));
 }
-function setFormSlots(card,side,formArr,id) {
-  const sels=card.querySelectorAll(`.form-sel-${side}`);
-  formArr.forEach((v,i)=>{ if(sels[i]){sels[i].value=v; colorFormSelect(sels[i]);} });
-  updateFormBar(id,side);
+
+function setFormSlots(card, side, formArr, id) {
+  const sels = card.querySelectorAll(`.form-sel-${side}`);
+  formArr.forEach((v,i) => { if(sels[i]){ sels[i].value=v; colorFormSelect(sels[i]); } });
+  updateFormBar(id, side);
 }
-function setSelectByText(sel,text) {
-  if (!text||!sel) return;
-  const t=text.toLowerCase().trim();
-  for (const opt of sel.options) {
-    if (opt.value.toLowerCase().includes(t.split(' ')[0])||t.includes(opt.value.toLowerCase().split(' ')[0])) {
-      sel.value=opt.value; return;
+
+/* ════════════════════════════════════════
+   CORRECTION PRINCIPALE — setSelectByText
+   Correspondance robuste avec aliases,
+   sans jamais tomber sur la 1ère option
+   par défaut si aucun match fiable trouvé
+════════════════════════════════════════ */
+function setSelectByText(sel, text) {
+  if (!text || !sel) return;
+
+  const raw = text.toLowerCase().trim();
+
+  // 1. Vérifier le dictionnaire d'aliases en priorité absolue
+  const aliases = getAliases();
+  const aliased = aliases[raw];
+  if (aliased) {
+    for (const opt of sel.options) {
+      if (opt.value === aliased) { sel.value = opt.value; return; }
     }
   }
-}
-function distributeMatches(sourceId,parsed) {
-  const matches=parsed.matches||[], rankings=parsed.rankings||[];
-  if (matches.length<=1) return;
-  const existing=[...document.querySelectorAll('.match-card')].map(c=>parseInt(c.dataset.id));
-  matches.slice(1).forEach((m,idx)=>{
-    const nextId=existing[idx+1];
-    const nextCard=nextId?document.querySelector(`.match-card[data-id="${nextId}"]`):null;
-    const isEmpty=nextCard&&!results[nextId]&&!nextCard.querySelector('.coteA').value;
-    if (isEmpty) { applyMatchToCard(nextId,m,rankings,nextCard); setTimeout(()=>analyzeCard(nextId),500); }
-    else {
-      addMatchCard();
-      const newCard=document.querySelector('.match-card:last-child');
-      const newId=parseInt(newCard.dataset.id);
-      applyMatchToCard(newId,m,rankings,newCard);
-      setTimeout(()=>analyzeCard(newId),500);
+
+  // 2. Correspondance exacte (insensible à la casse)
+  for (const opt of sel.options) {
+    if (opt.value.toLowerCase() === raw) { sel.value = opt.value; return; }
+  }
+
+  // 3. Correspondance partielle stricte :
+  //    TOUS les mots du texte recherché doivent se retrouver dans l'option
+  //    ET l'option doit contenir au moins 2 mots communs OU 1 mot long (≥5 lettres)
+  const rawWords = raw.split(/\s+/).filter(w => w.length >= 3);
+  if (rawWords.length > 0) {
+    for (const opt of sel.options) {
+      const ov = opt.value.toLowerCase();
+      const allRawInOpt = rawWords.every(w => ov.includes(w));
+      if (allRawInOpt) { sel.value = opt.value; return; }
     }
-  });
-  const status=document.getElementById(`scanStatus_${sourceId}`);
-  status.textContent=`✅ ${matches.length} matchs distribués et analysés automatiquement !`;
+  }
+
+  // 4. Correspondance inverse stricte :
+  //    TOUS les mots significatifs de l'option doivent être dans le texte
+  for (const opt of sel.options) {
+    const ovWords = opt.value.toLowerCase().split(/\s+/).filter(w => w.length >= 4);
+    if (ovWords.length === 0) continue;
+    const allOptInRaw = ovWords.every(w => raw.includes(w));
+    if (allOptInRaw) { sel.value = opt.value; return; }
+  }
+
+  // 5. Aucune correspondance fiable → NE PAS changer la sélection
+  //    Cela évite le bug "Manchester Red vs Manchester Red"
+  //    console.warn('[SafeBoom] Aucune équipe trouvée pour :', text);
+}
+
+/* ════════════════════════════════════════
+   DISTRIBUTION AUTOMATIQUE SANS DOUBLONS
+════════════════════════════════════════ */
+function distributeMatches(sourceId, parsed) {
+  const matches  = parsed.matches  || [];
+  const rankings = parsed.rankings || [];
+  if (matches.length <= 1) return;
+
+  const sourceCard = document.querySelector(`.match-card[data-id="${sourceId}"]`);
+  if (sourceCard) sourceCard.dataset.reserved = 'true';
+
+  const reservedIds = new Set([sourceId]);
+
+  for (let i = 1; i < matches.length; i++) {
+    const allCards = [...document.querySelectorAll('.match-card')];
+    const targetCard = allCards.find(c => {
+      const cId = parseInt(c.dataset.id);
+      return !reservedIds.has(cId) && isCardEmpty(c);
+    });
+
+    let card;
+    if (targetCard) {
+      card = targetCard;
+    } else {
+      addMatchCard();
+      const all = document.querySelectorAll('.match-card');
+      card = all[all.length - 1];
+    }
+
+    card.dataset.reserved = 'true';
+    reservedIds.add(parseInt(card.dataset.id));
+
+    const capturedCard = card;
+    const delay = 300 * i;
+    setTimeout(() => {
+      const cId = parseInt(capturedCard.dataset.id);
+      applyMatchToCard(cId, matches[i], rankings, capturedCard);
+      setTimeout(() => {
+        analyzeCard(cId);
+        capturedCard.dataset.reserved = 'false';
+      }, 300);
+    }, delay);
+  }
+
+  const totalDelay = 300 * matches.length + 600;
+  setTimeout(() => {
+    if (sourceCard) sourceCard.dataset.reserved = 'false';
+    const status = document.getElementById(`scanStatus_${sourceId}`);
+    if (status) {
+      const total = document.querySelectorAll('.match-card').length;
+      status.textContent = `${matches.length} matchs analysés et répartis sur ${total} carte(s) !`;
+    }
+    cleanEmptyCards();
+    updateSummary();
+  }, totalDelay);
+}
+
+window.addEventListener('load', () => {
+  fetchMLStatus();
+  setInterval(fetchMLStatus, 30000); // rafraîchit le statut toutes les 30s
+});
+
+/* ════════════════════════════════════════
+   STATUT ML (sidebar)
+════════════════════════════════════════ */
+async function fetchMLStatus() {
+  try {
+    const resp = await fetch('/status');
+    if (!resp.ok) return;
+    const d = await resp.json();
+    const s = d.strategy || {};
+
+    document.getElementById('mlResActive').textContent = d.ml_active ? 'ON' : 'OFF';
+    document.getElementById('mlResActive').className = 'ml-status-val ' + (d.ml_active ? 'on' : 'off');
+    document.getElementById('mlScActive').textContent = d.score_ml_active ? 'ON' : 'OFF';
+    document.getElementById('mlScActive').className = 'ml-status-val ' + (d.score_ml_active ? 'on' : 'off');
+    document.getElementById('mlSamples').textContent = d.feedback_count || 0;
+    document.getElementById('mlAccRes').textContent = s.accuracy_result ? s.accuracy_result + '%' : '—';
+    document.getElementById('mlAccSc').textContent  = s.accuracy_score  ? s.accuracy_score  + '%' : '—';
+    const acc = s.accuracy_result || 0;
+    document.getElementById('mlAccBar').style.width = Math.min(acc, 100) + '%';
+  } catch(e) {}
+}
+
+/* ════════════════════════════════════════
+   RÉSULTATS PAR CARTE — onResultsFile
+════════════════════════════════════════ */
+const resultsFiles = {};
+
+function onResultsFile(id, input) {
+  if (!input.files[0]) return;
+  resultsFiles[id] = input.files[0];
+  const thumb = document.getElementById(`resultsThumb_${id}`);
+  thumb.src = URL.createObjectURL(input.files[0]);
+  thumb.style.display = 'block';
+  document.getElementById(`resultsScanBtn_${id}`).disabled = false;
+  document.getElementById(`resultsScanZone_${id}`).classList.add('active');
+}
+
+async function runResultsScan(id) {
+  const file = resultsFiles[id];
+  if (!file) return;
+
+  const btn    = document.getElementById(`resultsScanBtn_${id}`);
+  const status = document.getElementById(`resultsStatus_${id}`);
+
+  btn.disabled = true;
+  btn.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Analyse...`;
+  status.className = 'results-status show loading';
+  status.textContent = '🔍 L\'IA lit l\'image du résultat...';
+
+  try {
+    // 1. Scanner l'image pour extraire le score
+    const formData = new FormData();
+    formData.append('results_img', file);
+
+    // Récupérer le match context de cette carte
+    const card = document.querySelector(`.match-card[data-id="${id}"]`);
+    if (!card) throw new Error('Carte introuvable');
+    const teamA = card.querySelector('.teamA').value;
+    const teamB = card.querySelector('.teamB').value;
+    formData.append('teamA', teamA);
+    formData.append('teamB', teamB);
+
+    const resp = await fetch('/scan-results', {
+      method: 'POST',
+      headers: { 'X-Gemini-Api-Key': window.GEMINI_API_KEY || '' },
+      body: formData
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Erreur serveur');
+
+    const extracted = data.results || [];
+    if (extracted.length === 0) throw new Error('Aucun résultat trouvé dans l\'image');
+
+    status.className = 'results-status show training';
+    status.textContent = `✅ ${extracted.length} résultat(s) extrait(s) — Entraînement IA en cours...`;
+
+    // 2. Préparer les données d'entraînement
+    // Associer chaque résultat extrait aux données de la carte correspondante
+    const trainingBatch = await buildTrainingBatch(extracted);
+
+    if (trainingBatch.length === 0) {
+      status.textContent = '⚠️ Impossible de faire correspondre les équipes avec les cartes.';
+      status.className = 'results-status show error';
+      return;
+    }
+
+    // 3. Envoyer à /import-results pour entraîner l'IA
+    const trainResp = await fetch('/import-results', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ results: trainingBatch })
+    });
+    const trainData = await trainResp.json();
+    if (!trainResp.ok) throw new Error(trainData.error || 'Erreur entraînement');
+
+    const tr = trainData.training || {};
+    status.className = 'results-status show success';
+    if (tr.trained) {
+      status.textContent = `🧠 IA entraînée ! ${trainData.imported} match(s) · Précision 1X2: ${tr.accuracy_result}% · Score: ${tr.accuracy_score}%`;
+    } else {
+      status.textContent = `✅ ${trainData.imported} résultat(s) sauvegardés. (${tr.reason || 'entraînement auto en cours'})`;
+    }
+
+    // Rafraîchir le statut ML et relancer l'analyse des cartes
+    await fetchMLStatus();
+    setTimeout(() => analyzeCard(id), 800);
+
+  } catch(err) {
+    status.className = 'results-status show error';
+    status.textContent = '❌ ' + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Entraîner IA`;
+  }
+}
+
+/* ════════════════════════════════════════
+   CONSTRUIRE LE BATCH D'ENTRAÎNEMENT
+   Croise les résultats extraits avec les
+   données des cartes existantes
+════════════════════════════════════════ */
+async function buildTrainingBatch(extractedResults) {
+  const batch = [];
+  const cards = [...document.querySelectorAll('.match-card')];
+
+  for (const res of extractedResults) {
+    const { teamA: rA, teamB: rB, score } = res;
+    if (!score) continue;
+
+    // Calculer le résultat depuis le score
+    const parts = score.split('-').map(Number);
+    if (parts.length < 2) continue;
+    const [goalsA, goalsB] = parts;
+    const result = goalsA > goalsB ? 0 : goalsA === goalsB ? 1 : 2;
+
+    // Chercher la carte correspondante par nom d'équipe
+    let matchedPayload = null;
+
+    // D'abord chercher dans matchPayloads (données complètes)
+    if (window.matchPayloads) {
+      for (const [cardId, payload] of Object.entries(window.matchPayloads)) {
+        const mA = (payload.match.teamA || '').toLowerCase();
+        const mB = (payload.match.teamB || '').toLowerCase();
+        const eA = (rA || '').toLowerCase();
+        const eB = (rB || '').toLowerCase();
+        if ((mA.includes(eA.slice(0,4)) || eA.includes(mA.slice(0,4))) &&
+            (mB.includes(eB.slice(0,4)) || eB.includes(mB.slice(0,4)))) {
+          matchedPayload = payload;
+          break;
+        }
+      }
+    }
+
+    // Sinon construire depuis la carte HTML si possible
+    if (!matchedPayload) {
+      for (const card of cards) {
+        const cA = card.querySelector('.teamA')?.value?.toLowerCase() || '';
+        const cB = card.querySelector('.teamB')?.value?.toLowerCase() || '';
+        const eA = (rA || '').toLowerCase();
+        const eB = (rB || '').toLowerCase();
+        if ((cA.includes(eA.slice(0,4)) || eA.includes(cA.slice(0,4))) &&
+            (cB.includes(eB.slice(0,4)) || eB.includes(cB.slice(0,4)))) {
+          const cid = parseInt(card.dataset.id);
+          const c1 = parseFloat(card.querySelector('.coteA')?.value)||3.0;
+          const cx = parseFloat(card.querySelector('.coteX')?.value)||3.5;
+          const c2 = parseFloat(card.querySelector('.coteB')?.value)||3.0;
+          matchedPayload = {
+            match: {
+              teamA: card.querySelector('.teamA').value,
+              teamB: card.querySelector('.teamB').value,
+              cote1: c1, coteX: cx, cote2: c2,
+              over25: parseFloat(card.querySelector('.over25')?.value)||null,
+              under25: parseFloat(card.querySelector('.under25')?.value)||null,
+              over15: parseFloat(card.querySelector('.over15')?.value)||null,
+              under15: parseFloat(card.querySelector('.under15')?.value)||null,
+              coteGG: parseFloat(card.querySelector('.coteGG')?.value)||null,
+              coteNG: parseFloat(card.querySelector('.coteNG')?.value)||null,
+              dc1x: parseFloat(card.querySelector('.coteDC1X')?.value)||null,
+              dcx2: parseFloat(card.querySelector('.coteDCX2')?.value)||null,
+              formA: getFormVals(card, 'A'),
+              formB: getFormVals(card, 'B')
+            },
+            rankings: (window.scanData && window.scanData[cid] && window.scanData[cid].rankings) || []
+          };
+          break;
+        }
+      }
+    }
+
+    // Si pas de carte trouvée, créer un enregistrement minimal
+    if (!matchedPayload) {
+      matchedPayload = {
+        match: { teamA: rA || '', teamB: rB || '' },
+        rankings: []
+      };
+    }
+
+    batch.push({
+      match:    matchedPayload.match,
+      rankings: matchedPayload.rankings,
+      result,
+      score
+    });
+  }
+
+  return batch;
+}
+
+/* ════════════════════════════════════════
+   IMPORT GLOBAL (sidebar) — image de résultats
+   de PLUSIEURS matchs d'un coup
+════════════════════════════════════════ */
+async function onGlobalResultsFile(input) {
+  if (!input.files[0]) return;
+  const file = input.files[0];
+  const statusEl = document.getElementById('globalImportStatus');
+
+  statusEl.className = 'show loading';
+  statusEl.textContent = '🔍 Lecture de l\'image...';
+
+  try {
+    const formData = new FormData();
+    formData.append('results_img', file);
+
+    const resp = await fetch('/scan-results', {
+      method: 'POST',
+      headers: { 'X-Gemini-Api-Key': window.GEMINI_API_KEY || '' },
+      body: formData
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Erreur serveur');
+
+    const extracted = data.results || [];
+    if (extracted.length === 0) throw new Error('Aucun résultat trouvé');
+
+    statusEl.className = 'show training';
+    statusEl.textContent = `✅ ${extracted.length} résultats extraits — Entraînement...`;
+
+    const batch = await buildTrainingBatch(extracted);
+
+    if (batch.length === 0) {
+      statusEl.textContent = '⚠️ Aucune carte correspondante trouvée.';
+      statusEl.className = 'show error';
+      input.value = '';
+      return;
+    }
+
+    const trainResp = await fetch('/import-results', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ results: batch })
+    });
+    const trainData = await trainResp.json();
+    if (!trainResp.ok) throw new Error(trainData.error || 'Erreur entraînement');
+
+    const tr = trainData.training || {};
+    statusEl.className = 'show success';
+    if (tr.trained) {
+      statusEl.textContent = `🧠 IA mise à jour ! ${trainData.imported} matchs · ${tr.accuracy_result}% précision`;
+    } else {
+      statusEl.textContent = `✅ ${trainData.imported} résultats sauvegardés`;
+    }
+
+    await fetchMLStatus();
+    // Relancer toutes les analyses avec le nouveau modèle
+    setTimeout(() => document.querySelectorAll('.match-card').forEach(c => {
+      if (results[parseInt(c.dataset.id)]) analyzeCard(parseInt(c.dataset.id));
+    }), 1000);
+
+  } catch(err) {
+    statusEl.className = 'show error';
+    statusEl.textContent = '❌ ' + err.message;
+  }
+
+  input.value = '';
 }
 </script>
 </body>

@@ -1,0 +1,45 @@
+{"match": {"teamA": "Senegal", "teamB": "Benin", "cote1": 1.5, "coteX": 3.5, "cote2": 6.0}, "rankings": [], "result": 0}
+{"match": {"teamA": "Tanzanie", "teamB": "RD Congo"}, "rankings": [], "result": 2, "score": "0-1"}
+{"match": {"teamA": "Angola", "teamB": "Guinée Équatoriale"}, "rankings": [], "result": 0, "score": "1-0"}
+{"match": {"teamA": "Mozambique", "teamB": "Mali"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Cameroun", "teamB": "Algérie"}, "rankings": [], "result": 2, "score": "0-1"}
+{"match": {"teamA": "Comores", "teamB": "Côte d'Ivoire"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Burkina Faso", "teamB": "Bénin"}, "rankings": [], "result": 1, "score": "1-1"}
+{"match": {"teamA": "Gabon", "teamB": "Soudan"}, "rankings": [], "result": 0, "score": "2-0"}
+{"match": {"teamA": "Sénégal", "teamB": "Égypte"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Botswana", "teamB": "Ouganda"}, "rankings": [], "result": 2, "score": "0-3"}
+{"match": {"teamA": "Zambie", "teamB": "Maroc"}, "rankings": [], "result": 2, "score": "1-2"}
+{"match": {"teamA": "Nigeria", "teamB": "Tunisie"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Comores", "teamB": "Côte d'Ivoire"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Tanzanie", "teamB": "RD Congo"}, "rankings": [], "result": 2, "score": "0-1"}
+{"match": {"teamA": "Angola", "teamB": "Guinée Équatoriale"}, "rankings": [], "result": 0, "score": "1-0"}
+{"match": {"teamA": "Mozambique", "teamB": "Mali"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Cameroun", "teamB": "Algérie"}, "rankings": [], "result": 2, "score": "0-1"}
+{"match": {"teamA": "Burkina Faso", "teamB": "Bénin"}, "rankings": [], "result": 1, "score": "1-1"}
+{"match": {"teamA": "Gabon", "teamB": "Soudan"}, "rankings": [], "result": 0, "score": "2-0"}
+{"match": {"teamA": "Sénégal", "teamB": "Égypte"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Botswana", "teamB": "Ouganda"}, "rankings": [], "result": 2, "score": "0-3"}
+{"match": {"teamA": "Zambie", "teamB": "Maroc"}, "rankings": [], "result": 2, "score": "1-2"}
+{"match": {"teamA": "Nigeria", "teamB": "Tunisie"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Tunisie", "teamB": "Égypte"}, "rankings": [], "result": 2, "score": "0-1"}
+{"match": {"teamA": "Guinée équatoriale", "teamB": "Zimbabwe"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Côte d'Ivoire", "teamB": "Mozambique"}, "rankings": [], "result": 1, "score": "2-2"}
+{"match": {"teamA": "Zambie", "teamB": "Botswana"}, "rankings": [], "result": 0, "score": "1-0"}
+{"match": {"teamA": "Maroc", "teamB": "Nigeria"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Afrique du Sud", "teamB": "Bénin"}, "rankings": [], "result": 0, "score": "4-0"}
+{"match": {"teamA": "Algérie", "teamB": "Burkina Faso"}, "rankings": [], "result": 0, "score": "2-1"}
+{"match": {"teamA": "Ouganda", "teamB": "Mali"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Angola", "teamB": "Tanzanie"}, "rankings": [], "result": 2, "score": "1-2"}
+{"match": {"teamA": "Gabon", "teamB": "Cameroun"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "RD Congo", "teamB": "Sénégal"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Tunisie", "teamB": "Égypte"}, "rankings": [], "result": 2, "score": "0-1"}
+{"match": {"teamA": "Guinée équatoriale", "teamB": "Zimbabwe"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Côte d'Ivoire", "teamB": "Mozambique"}, "rankings": [], "result": 1, "score": "2-2"}
+{"match": {"teamA": "Zambie", "teamB": "Botswana"}, "rankings": [], "result": 0, "score": "1-0"}
+{"match": {"teamA": "Maroc", "teamB": "Nigéria"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Afrique du Sud", "teamB": "Bénin"}, "rankings": [], "result": 0, "score": "4-0"}
+{"match": {"teamA": "Algérie", "teamB": "Burkina Faso"}, "rankings": [], "result": 0, "score": "2-1"}
+{"match": {"teamA": "Ouganda", "teamB": "Mali"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "Angola", "teamB": "Tanzanie"}, "rankings": [], "result": 2, "score": "1-2"}
+{"match": {"teamA": "Gabon", "teamB": "Cameroun"}, "rankings": [], "result": 1, "score": "0-0"}
+{"match": {"teamA": "RD Congo", "teamB": "Sénégal"}, "rankings": [], "result": 1, "score": "0-0"}
