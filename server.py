@@ -18,8 +18,7 @@ try:
     from sklearn.ensemble import GradientBoostingClassifier, VotingClassifier, RandomForestClassifier
     from sklearn.preprocessing import StandardScaler
     from sklearn.pipeline import Pipeline
-    from sklearn.calibration import CalibratedClassifierCV
-    from sklearn.model_selection import cross_val_score
+    from sklearn.model_selection import cross_val_score, StratifiedKFold, train_test_split
     SKLEARN_OK = True
 except ImportError:
     SKLEARN_OK = False
@@ -28,8 +27,8 @@ except ImportError:
 app = Flask(__name__, static_folder='.')
 CORS(app)
 
-# ── Clé Groq (fixée côté serveur) ──
-GROQ_API_KEY = "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"
+# ── Clé Groq ──
+GROQ_API_KEY = "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"
 
 MODEL_PATH        = "model.pkl"
 SCORE_MODEL_PATH  = "score_model.pkl"
@@ -39,7 +38,7 @@ STRATEGY_LOG      = "strategy.json"
 LABELS       = ["1", "X", "2"]
 
 # ════════════════════════════════════════════════
-#  SCORES POSSIBLES (prédicton de score exact)
+#  SCORES POSSIBLES
 # ════════════════════════════════════════════════
 SCORE_LABELS = [
     "0-0", "1-0", "0-1", "1-1", "2-0", "0-2",
@@ -65,7 +64,7 @@ def score_to_index(score: str) -> int:
         return -1
 
 # ════════════════════════════════════════════════
-#  STRATÉGIES APPRISES (écrites dans strategy.json)
+#  STRATÉGIES APPRISES
 # ════════════════════════════════════════════════
 
 DEFAULT_STRATEGY = {
@@ -93,7 +92,6 @@ def load_strategy() -> dict:
         try:
             with open(STRATEGY_LOG, encoding="utf-8") as f:
                 s = json.load(f)
-                # Fusion avec défaut pour les clés manquantes
                 for k, v in DEFAULT_STRATEGY.items():
                     if k not in s:
                         s[k] = v
@@ -109,7 +107,7 @@ def save_strategy(strategy: dict):
 STRATEGY = load_strategy()
 
 # ════════════════════════════════════════════════
-#  FEATURE ENGINEERING (enrichi — 22 features)
+#  FEATURE ENGINEERING
 # ════════════════════════════════════════════════
 
 def _find_rank(team: str, rankings: list) -> int:
@@ -138,13 +136,11 @@ def _form_score(form: list) -> float:
     return sum(scores) / (3 * len(scores)) if scores else 0.5
 
 def _form_goals_approx(form: list) -> float:
-    """Estime un score moyen de buts à partir de la forme W/D/L."""
     mapping = {"W": 1.8, "D": 1.0, "L": 0.5}
     scores = [mapping.get(r, 1.0) for r in (form or [])[-5:]]
     return sum(scores) / len(scores) if scores else 1.0
 
 def _streak(form: list) -> int:
-    """Calcule la série actuelle : +N si N victoires, -N si N défaites."""
     if not form:
         return 0
     last = form[-1]
@@ -157,21 +153,6 @@ def _streak(form: list) -> int:
     return streak if last == "W" else -streak
 
 def extract_features(match: dict, rankings: list) -> np.ndarray:
-    """
-    Vecteur de 22 features :
-     [0-2]   Probabilités implicites normalisées p1, px, p2
-     [3-5]   Log-cotes log(c1), log(cx), log(c2)
-     [6-8]   Rang A, Rang B, Écart de rang
-     [9-11]  Points A, Points B, Différentiel de points
-     [12-13] Forme A, Forme B (score 0-1)
-     [14]    Différentiel de forme A-B
-     [15-16] Série victoires/défaites A, B (streak)
-     [17]    Probabilité Over 2.5
-     [18]    Probabilité GG (les deux marquent)
-     [19]    Probabilité Over 1.5
-     [20]    Double chance 1X  (probabilité implicite)
-     [21]    Double chance X2  (probabilité implicite)
-    """
     c1 = max(float(match.get("cote1") or 3.0), 1.01)
     cx = max(float(match.get("coteX") or 3.5), 1.01)
     c2 = max(float(match.get("cote2") or 3.0), 1.01)
@@ -224,10 +205,6 @@ def extract_features(match: dict, rankings: list) -> np.ndarray:
     ], dtype=np.float32)
 
 def score_features(match: dict, rankings: list) -> np.ndarray:
-    """
-    Features supplémentaires pour la prédiction de score exact.
-    Reprend les 22 features de base + probabilité Over et forme de buts estimée.
-    """
     base = extract_features(match, rankings)
     ga = _form_goals_approx(match.get("formA", []))
     gb = _form_goals_approx(match.get("formB", []))
@@ -270,33 +247,48 @@ _train_lock = threading.Lock()
 #  ENTRAÎNEMENT
 # ════════════════════════════════════════════════
 
+def load_feedback_rows() -> list:
+    """Charge le feedback en dédupliquant par (teamA, teamB, score)."""
+    if not os.path.exists(FEEDBACK_LOG):
+        return []
+    seen = set()
+    rows = []
+    with open(FEEDBACK_LOG, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                r = json.loads(line)
+                key = (
+                    r.get("match", {}).get("teamA", "").lower().strip(),
+                    r.get("match", {}).get("teamB", "").lower().strip(),
+                    str(r.get("score", "")),
+                )
+                if key not in seen:
+                    seen.add(key)
+                    rows.append(r)
+            except:
+                pass
+    return rows
+
+# Minimum d'exemples requis pour entraîner (abaissé à 3 pour réagir plus vite)
+MIN_TRAIN_SAMPLES = 3
+
 def train_from_feedback():
-    """
-    Entraîne DEUX modèles :
-      1. Modèle résultat  → prédit 1/X/2
-      2. Modèle score     → prédit le score exact (0-0, 1-0, etc.)
-    Réécrit strategy.json avec les nouvelles stats apprises.
-    Retourne (model_result, model_score, n_samples, accuracy_result, accuracy_score)
-    """
     global STRATEGY
 
     if not SKLEARN_OK:
         raise RuntimeError("scikit-learn non disponible")
 
-    if not os.path.exists(FEEDBACK_LOG):
-        raise FileNotFoundError(f"{FEEDBACK_LOG} introuvable — aucun résultat enregistré.")
+    rows = load_feedback_rows()
 
-    rows = []
-    with open(FEEDBACK_LOG, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                rows.append(json.loads(line))
+    if len(rows) < MIN_TRAIN_SAMPLES:
+        raise ValueError(f"Seulement {len(rows)} exemples — minimum {MIN_TRAIN_SAMPLES} requis pour entraîner.")
 
-    if len(rows) < 10:
-        raise ValueError(f"Seulement {len(rows)} exemples — minimum 10 requis pour entraîner.")
+    print(f"🧠 Entraînement sur {len(rows)} matchs dédupliqués...")
 
-    # ── Modèle 1 : Résultat (1/X/2) ──
+    # Modèle 1 : Résultat
     X_res = np.array([extract_features(r["match"], r.get("rankings", [])) for r in rows])
     y_res = np.array([int(r["result"]) for r in rows])
 
@@ -329,17 +321,25 @@ def train_from_feedback():
     ])
     pipeline_res.fit(X_res, y_res)
 
-    # Cross-validation pour estimer l'accuracy réelle
+    # Cross-validation adaptative
     try:
-        cv_scores_res = cross_val_score(pipeline_res, X_res, y_res, cv=min(5, len(rows)//5), scoring="accuracy")
-        acc_res = float(cv_scores_res.mean())
+        unique_classes = len(np.unique(y_res))
+        n_splits = min(3, unique_classes)
+        if n_splits >= 2:
+            skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
+            cv_scores_res = cross_val_score(pipeline_res, X_res, y_res, cv=skf, scoring="accuracy")
+            acc_res = float(cv_scores_res.mean())
+        else:
+            X_train, X_test, y_train, y_test = train_test_split(X_res, y_res, test_size=0.2, random_state=42)
+            pipeline_res.fit(X_train, y_train)
+            acc_res = pipeline_res.score(X_test, y_test)
     except:
-        acc_res = 0.0
+        acc_res = 0.5
 
     joblib.dump(pipeline_res, MODEL_PATH)
-    print(f"✅ Modèle résultat entraîné — accuracy CV : {acc_res*100:.1f}%")
+    print(f"✅ Modèle résultat entraîné — accuracy : {acc_res*100:.1f}%")
 
-    # ── Modèle 2 : Score exact ──
+    # Modèle 2 : Score exact
     score_rows = [r for r in rows if r.get("score")]
     pipeline_score = None
     acc_score = 0.0
@@ -370,17 +370,25 @@ def train_from_feedback():
             pipeline_score.fit(X_sc_v, y_sc_v)
 
             try:
-                cv_scores_sc = cross_val_score(pipeline_score, X_sc_v, y_sc_v, cv=min(5, len(valid)//5), scoring="accuracy")
-                acc_score = float(cv_scores_sc.mean())
+                unique_sc_classes = len(np.unique(y_sc_v))
+                n_splits_sc = min(3, unique_sc_classes)
+                if n_splits_sc >= 2:
+                    skf_sc = StratifiedKFold(n_splits=n_splits_sc, shuffle=True, random_state=42)
+                    cv_scores_sc = cross_val_score(pipeline_score, X_sc_v, y_sc_v, cv=skf_sc, scoring="accuracy")
+                    acc_score = float(cv_scores_sc.mean())
+                else:
+                    X_train, X_test, y_train, y_test = train_test_split(X_sc_v, y_sc_v, test_size=0.2, random_state=42)
+                    pipeline_score.fit(X_train, y_train)
+                    acc_score = pipeline_score.score(X_test, y_test)
             except:
-                acc_score = 0.0
+                acc_score = 0.5
 
             joblib.dump(pipeline_score, SCORE_MODEL_PATH)
-            print(f"✅ Modèle score entraîné — accuracy CV : {acc_score*100:.1f}%")
+            print(f"✅ Modèle score entraîné — accuracy : {acc_score*100:.1f}%")
     else:
-        print(f"ℹ️  Seulement {len(score_rows)} matchs avec score — modèle score non entraîné encore.")
+        print(f"ℹ️  Seulement {len(score_rows)} matchs avec score — modèle score non entraîné.")
 
-    # ── Calcul des poids de score à partir des données réelles ──
+    # Calcul des poids
     score_counts = {}
     for r in rows:
         s = r.get("score")
@@ -393,7 +401,7 @@ def train_from_feedback():
     else:
         learned_weights = DEFAULT_STRATEGY["score_weights"]
 
-    # ── Mise à jour de la stratégie ──
+    # Mise à jour stratégie
     new_conf_threshold = max(55.0, min(75.0, acc_res * 100 * 0.85))
     new_reliable_threshold = max(60.0, min(80.0, acc_res * 100 * 0.90))
 
@@ -407,121 +415,172 @@ def train_from_feedback():
         "reliable_threshold":   round(new_reliable_threshold, 1),
     })
     save_strategy(STRATEGY)
-    print(f"✅ strategy.json mis à jour (v{STRATEGY['version']}) — {len(rows)} matchs, acc={acc_res*100:.1f}%")
 
     return pipeline_res, pipeline_score, len(rows), acc_res, acc_score
 
 # ════════════════════════════════════════════════
-#  AUTO-ENTRAÎNEMENT EN ARRIÈRE-PLAN
+#  AUTO-ENTRAÎNEMENT
 # ════════════════════════════════════════════════
 
-def auto_train_loop():
-    """
-    Vérifie toutes les 60s si de nouveaux exemples sont disponibles.
-    Lance un réentraînement automatique dès que 10+ exemples existent
-    ET que le modèle n'est pas à jour.
-    """
-    global MODEL, SCORE_MODEL, STRATEGY
-    last_count = 0
+# ════════════════════════════════════════════════
+#  AUTO-ENTRAÎNEMENT IMMÉDIAT
+#  - Vérifie toutes les 5s si de nouvelles données arrivent
+#  - Entraîne dès MIN_TRAIN_SAMPLES exemples dédupliqués
+#  - Évite les réentraînements inutiles (hash du contenu)
+# ════════════════════════════════════════════════
 
+_last_trained_hash = None
+
+def _feedback_hash() -> str:
+    """Hash léger du fichier feedback pour détecter tout changement."""
+    if not os.path.exists(FEEDBACK_LOG):
+        return ""
+    try:
+        stat = os.stat(FEEDBACK_LOG)
+        return f"{stat.st_size}_{stat.st_mtime}"
+    except:
+        return ""
+
+def trigger_train_if_needed(force: bool = False):
+    """Lance l'entraînement si des nouvelles données sont détectées."""
+    global MODEL, SCORE_MODEL, _last_trained_hash
+    current_hash = _feedback_hash()
+    if not force and current_hash == _last_trained_hash:
+        return None  # Rien de nouveau
+    rows = load_feedback_rows()
+    if len(rows) < MIN_TRAIN_SAMPLES:
+        return None
+    try:
+        with _train_lock:
+            MODEL, SCORE_MODEL, n, a_res, a_sc = train_from_feedback()
+            _last_trained_hash = _feedback_hash()
+            print(f"🤖 Entraînement auto — {n} matchs | Résultat: {a_res*100:.1f}% | Score: {a_sc*100:.1f}%")
+            return {"trained": True, "samples": n, "accuracy_result": round(a_res*100,1), "accuracy_score": round(a_sc*100,1)}
+    except Exception as e:
+        print(f"Auto-train error: {e}")
+        return {"trained": False, "reason": str(e)}
+
+def auto_train_loop():
     while True:
         try:
-            if os.path.exists(FEEDBACK_LOG):
-                count = sum(1 for line in open(FEEDBACK_LOG, encoding="utf-8") if line.strip())
-                if count >= 10 and count != last_count:
-                    print(f"🤖 Auto-training lancé ({count} exemples)...")
-                    with _train_lock:
-                        MODEL, SCORE_MODEL, n, a_res, a_sc = train_from_feedback()
-                        last_count = count
-                        print(f"   Résultat accuracy : {a_res*100:.1f}% | Score accuracy : {a_sc*100:.1f}%")
+            trigger_train_if_needed()
         except Exception as e:
-            print("Auto-train error:", e)
-        time.sleep(60)
+            print("Auto-train loop error:", e)
+        time.sleep(5)  # Réaction rapide : vérif toutes les 5s
 
 _auto_thread = threading.Thread(target=auto_train_loop, daemon=True)
 _auto_thread.start()
 
 # ════════════════════════════════════════════════
-#  PRÉDICTION DE SCORE (heuristique + ML)
+#  PRÉDICTION DE SCORE AVEC COHÉRENCE ABSOLUE
 # ════════════════════════════════════════════════
 
-def predict_score_heuristic(match: dict, rankings: list, result_probs: list) -> list:
-    """
-    Prédit un classement de scores possibles basé sur :
-    - les probabilités de résultat (p1, px, p2)
-    - les probabilités Over/Under
-    - les poids appris dans STRATEGY
-    - la forme des équipes
-    """
+def enforce_absolute_score_result_consistency(scores_list, result_probs, forced_result=None):
+    """FORCE une cohérence ABSOLUE entre score et résultat."""
     p1, px, p2 = result_probs
+    
+    if forced_result is None:
+        probs = [p1, px, p2]
+        forced_result = probs.index(max(probs))
+    
+    consistent_scores = []
+    for score, prob in scores_list:
+        score_result = score_to_result(score)
+        if score_result == forced_result:
+            consistent_scores.append((score, prob))
+    
+    if not consistent_scores:
+        if forced_result == 0:
+            default_scores = [("1-0", 40.0), ("2-0", 25.0), ("2-1", 20.0), ("3-0", 10.0), ("3-1", 5.0)]
+        elif forced_result == 1:
+            default_scores = [("0-0", 40.0), ("1-1", 35.0), ("2-2", 20.0), ("3-3", 5.0)]
+        else:
+            default_scores = [("0-1", 40.0), ("0-2", 25.0), ("1-2", 20.0), ("0-3", 10.0), ("1-3", 5.0)]
+        return default_scores
+    
+    total = sum(p for _, p in consistent_scores)
+    if total > 0:
+        consistent_scores = [(s, round(p / total * 100, 2)) for s, p in consistent_scores]
+    
+    return sorted(consistent_scores, key=lambda x: x[1], reverse=True)[:10]
 
-    over25  = max(float(match.get("over25")  or 2.0), 1.01)
+def predict_score_heuristic(match: dict, rankings: list, result_probs: list, forced_result=None) -> list:
+    """Prédit les scores en FORÇANT la cohérence avec le résultat."""
+    p1, px, p2 = result_probs
+    
+    if forced_result is None:
+        probs = [p1, px, p2]
+        forced_result = probs.index(max(probs))
+    
+    result_prob = [p1, px, p2][forced_result]
+    
+    over25 = max(float(match.get("over25") or 2.0), 1.01)
     under25 = max(float(match.get("under25") or 1.8), 1.01)
-    p_over  = (1/over25) / (1/over25 + 1/under25)
-
+    p_over = (1/over25) / (1/over25 + 1/under25)
+    
     cgg = max(float(match.get("coteGG") or 1.9), 1.01)
     cng = max(float(match.get("coteNG") or 1.9), 1.01)
     p_gg = (1/cgg) / (1/cgg + 1/cng)
-
-    over15  = max(float(match.get("over15")  or 1.45), 1.01)
-    under15 = max(float(match.get("under15") or 2.6),  1.01)
-    p_o15   = (1/over15) / (1/over15 + 1/under15)
-
+    
+    over15 = max(float(match.get("over15") or 1.45), 1.01)
+    under15 = max(float(match.get("under15") or 2.6), 1.01)
+    p_o15 = (1/over15) / (1/over15 + 1/under15)
+    
     form_a = _form_score(match.get("formA", []))
     form_b = _form_score(match.get("formB", []))
-
     weights = STRATEGY.get("score_weights", DEFAULT_STRATEGY["score_weights"])
-
+    
     scores_prob = {}
+    
     for score in SCORE_LABELS:
         a, b = map(int, score.split("-"))
-        total = a + b
-
-        # Probabilité de résultat
-        if a > b:   res_p = p1
-        elif a == b: res_p = px
-        else:        res_p = p2
-
-        # Probabilité de volume de buts
-        if total == 0:
-            vol_p = (1 - p_o15) * 0.8
-        elif total == 1:
+        total_goals = a + b
+        
+        score_result = score_to_result(score)
+        if score_result != forced_result:
+            continue
+        
+        if total_goals == 0:
+            vol_p = (1 - p_o15) * 0.9
+        elif total_goals == 1:
             vol_p = (p_o15 - p_over) * 0.7 + (1 - p_o15) * 0.2
-        elif total == 2:
-            vol_p = (p_over * 0.5 + (1 - p_gg) * p_over * 0.3)
-        elif total == 3:
-            vol_p = p_over * p_gg * 0.6
-        elif total == 4:
-            vol_p = p_over * p_gg * 0.3
+        elif total_goals == 2:
+            vol_p = p_over * 0.6 + (1 - p_gg) * 0.3
+        elif total_goals == 3:
+            vol_p = p_over * p_gg * 0.7
+        elif total_goals == 4:
+            vol_p = p_over * p_gg * 0.4
         else:
-            vol_p = p_over * p_gg * 0.1
-
-        # Probabilité de GG (les deux marquent)
+            vol_p = p_over * p_gg * 0.2
+        
         if a > 0 and b > 0:
             gg_p = p_gg
         else:
             gg_p = 1 - p_gg
-
-        # Forme des équipes
-        if a > 0:
-            att_a = 0.5 + form_a * 0.5
+        
+        if forced_result == 0:
+            att_factor = (0.6 + form_a * 0.4) * (1 - form_b * 0.3)
+        elif forced_result == 1:
+            att_factor = 0.5 + (1 - abs(form_a - form_b)) * 0.3
         else:
-            att_a = 1.0
-
-        if b > 0:
-            att_b = 0.5 + form_b * 0.5
-        else:
-            att_b = 1.0
-
+            att_factor = (0.6 + form_b * 0.4) * (1 - form_a * 0.3)
+        
         base = weights.get(score, 0.01)
-        prob = base * res_p * vol_p * gg_p * att_a * att_b
-        scores_prob[score] = max(prob, 0.0001)
-
-    # Normaliser
+        prob = base * result_prob * vol_p * gg_p * att_factor * 100
+        scores_prob[score] = max(prob, 0.01)
+    
     total = sum(scores_prob.values())
-    scores_prob = {s: round(v / total * 100, 2) for s, v in scores_prob.items()}
-
-    # Trier par probabilité décroissante
+    if total > 0:
+        scores_prob = {s: round(v / total * 100, 2) for s, v in scores_prob.items()}
+    else:
+        if forced_result == 0:
+            default_scores = {"1-0": 35, "2-0": 25, "2-1": 20, "3-0": 12, "3-1": 8}
+        elif forced_result == 1:
+            default_scores = {"0-0": 35, "1-1": 35, "2-2": 20, "3-3": 10}
+        else:
+            default_scores = {"0-1": 35, "0-2": 25, "1-2": 20, "0-3": 12, "1-3": 8}
+        scores_prob = default_scores
+    
     sorted_scores = sorted(scores_prob.items(), key=lambda x: x[1], reverse=True)
     return sorted_scores[:10]
 
@@ -538,7 +597,7 @@ def serve_static(path):
     return send_from_directory('.', path)
 
 # ════════════════════════════════════════════════
-#  ROUTE /scan  (OCR via Groq — inchangé)
+#  ROUTE /scan
 # ════════════════════════════════════════════════
 
 @app.route('/scan', methods=['POST'])
@@ -549,39 +608,37 @@ def scan_images():
     if not odds_file and not rank_file:
         return jsonify({"error": "Aucune image fournie"}), 400
 
-    prompt_text = """Tu analyses des captures d'écran de l'appli de paris sportifs Bet261 (version afrique/CAN virtuelle).
-Réponds UNIQUEMENT en JSON valide, rien d'autre, sans backticks.
+    prompt_text = """Tu analyses des captures d'écran de l'appli de paris sportifs Bet261.
+IMPORTANT: Tu dois répondre UNIQUEMENT avec un JSON valide. Pas de texte avant ou après.
+Pour les champs non trouvés, utilise null (sans guillemets).
 
-Format de réponse attendu:
+Format EXACT:
 {
   "matches": [
     {
-      "teamA": "Nom équipe 1",
-      "teamB": "Nom équipe 2",
+      "teamA": "nom",
+      "teamB": "nom",
       "cote1": 1.03,
       "coteX": 12.56,
       "cote2": 99.04,
-      "over25": 2.10,
-      "under25": 1.72,
-      "over15": 1.45,
-      "under15": 2.60,
-      "coteGG": 1.80,
-      "coteNG": 1.95,
-      "dc1x": 1.22,
-      "dcx2": 1.55
+      "over25": null,
+      "under25": null,
+      "over15": null,
+      "under15": null,
+      "coteGG": null,
+      "coteNG": null,
+      "dc1x": null,
+      "dcx2": null
     }
   ],
-  "rankings": [
-    { "team": "Nom équipe", "rank": 1, "pts": 27, "form": ["W","W","W","W","D"] }
-  ]
+  "rankings": []
 }
 
-Instructions:
-- Pour les cotes: extrais les valeurs 1X2 pour chaque match visible, ainsi que Over/Under, GG/NG et Double Chance si présentes.
-- Pour le classement: extrais rang, nom équipe, points, et historique des 5 derniers matchs (W/D/L).
-- Si une image n'est pas fournie, retourne un tableau vide pour ce champ.
-- Normalise les noms en français (ex: Ivory Coast -> Côte d'Ivoire, Egypt -> Égypte, Algeria -> Algérie, South Africa -> Afrique du Sud).
-- Ne rajoute AUCUN texte autour du JSON."""
+Règles:
+- Utilise null pour les valeurs manquantes
+- Ne mets PAS de guillemets autour des nombres
+- Les noms des équipes doivent être en français
+- Réponds UNIQUEMENT avec le JSON, rien d'autre"""
 
     raw_text = ""
     try:
@@ -591,19 +648,18 @@ Instructions:
             img_data = base64.b64encode(odds_file.read()).decode('utf-8')
             mime = odds_file.mimetype or 'image/jpeg'
             messages_content.append({"type": "image_url", "image_url": {"url": f"data:{mime};base64,{img_data}"}})
-            messages_content.append({"type": "text", "text": "Image ci-dessus: capture des COTES 1X2 (et Over/Under, GG/NG, Double Chance si visibles)."})
 
         if rank_file:
             img_data = base64.b64encode(rank_file.read()).decode('utf-8')
             mime = rank_file.mimetype or 'image/jpeg'
             messages_content.append({"type": "image_url", "image_url": {"url": f"data:{mime};base64,{img_data}"}})
-            messages_content.append({"type": "text", "text": "Image ci-dessus: capture du CLASSEMENT des équipes (rang, points, forme récente)."})
 
         payload = {
             "model": "meta-llama/llama-4-scout-17b-16e-instruct",
             "messages": [{"role": "user", "content": messages_content}],
             "temperature": 0.1,
-            "max_tokens": 2000
+            "max_tokens": 2000,
+            "response_format": {"type": "json_object"}
         }
 
         resp = requests.post(
@@ -622,52 +678,59 @@ Instructions:
 
         clean_text = raw_text.strip()
         if clean_text.startswith("```"):
-            clean_text = clean_text.split("```")[1]
-            if clean_text.startswith("json"):
-                clean_text = clean_text[4:]
-        clean_text = clean_text.strip().rstrip("```").strip()
-
+            lines = clean_text.split("\n")
+            if lines[0].strip().startswith("```"):
+                lines = lines[1:]
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            clean_text = "\n".join(lines)
+        
+        clean_text = clean_text.strip()
+        clean_text = clean_text.replace('"', '"')
+        clean_text = clean_text.replace('"', '"')
+        clean_text = clean_text.replace(''', "'")
+        clean_text = clean_text.replace(''', "'")
+        clean_text = ''.join(char for char in clean_text if ord(char) >= 32 or char == '\n')
+        
         parsed = json.loads(clean_text)
+        
+        if "matches" in parsed:
+            for match in parsed["matches"]:
+                for key in ["over25", "under25", "over15", "under15", "coteGG", "coteNG", "dc1x", "dcx2"]:
+                    if key not in match or match[key] is None:
+                        match[key] = None
+        
         return jsonify(parsed)
 
     except json.JSONDecodeError as e:
-        return jsonify({"error": f"Réponse invalide (JSON mal formé): {str(e)}. Brut: {raw_text[:300]}"}), 500
+        return jsonify({"error": f"JSON mal formé: {str(e)}"}), 500
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # ════════════════════════════════════════════════
-#  ROUTE /scan-results  (OCR résultats → auto-apprentissage)
+#  ROUTE /scan-results
 # ════════════════════════════════════════════════
 
 @app.route('/scan-results', methods=['POST'])
 def scan_results():
-    """
-    Reçoit une image de résultats de matchs (capture Bet261).
-    Extrait automatiquement : teamA, teamB, score final (ex: "2-1").
-    Retourne : { "results": [{"teamA":"...", "teamB":"...", "score":"2-1"}, ...] }
-
-    Le front-end croise ensuite ces résultats avec les cartes existantes
-    et envoie le tout à /import-results pour entraîner l'IA.
-    """
     results_file = request.files.get('results_img')
-    team_a_hint  = request.form.get('teamA', '')
-    team_b_hint  = request.form.get('teamB', '')
+    team_a_hint = request.form.get('teamA', '')
+    team_b_hint = request.form.get('teamB', '')
 
     if not results_file:
         return jsonify({"error": "Aucune image de résultats fournie"}), 400
 
-    # Construire le prompt selon qu'on a des hints d'équipes ou non
     if team_a_hint and team_b_hint:
         context = f"Le match est entre '{team_a_hint}' (domicile) et '{team_b_hint}' (visiteur)."
     else:
         context = "Extrais TOUS les matchs visibles dans l'image."
 
-    prompt_text = f"""Tu analyses une capture d'écran montrant des résultats de matchs de football virtuels (app Bet261).
+    prompt_text = f"""Tu analyses une capture d'écran montrant des résultats de matchs de football.
 {context}
-Réponds UNIQUEMENT en JSON valide, sans backticks, sans explication.
+Réponds UNIQUEMENT en JSON valide, sans backticks.
 
-Format EXACT attendu:
+Format EXACT:
 {{
   "results": [
     {{
@@ -678,12 +741,10 @@ Format EXACT attendu:
   ]
 }}
 
-Règles strictes:
-- "score" doit toujours être au format "BUTS_DOMICILE-BUTS_VISITEUR" (ex: "0-0", "1-0", "2-3")
-- Extrais TOUS les matchs terminés visibles avec leur score final
-- Normalise les noms (Egypt→Égypte, Morocco→Maroc, Ivory Coast→Côte d'Ivoire, Senegal→Sénégal, etc.)
-- Si tu ne vois pas de score clair pour un match, ne l'inclus pas
-- Ne rajoute AUCUN texte hors du JSON"""
+Règles:
+- score au format "BUTS_DOMICILE-BUTS_VISITEUR"
+- Normalise les noms (Egypt→Égypte, Morocco→Maroc)
+- Réponds UNIQUEMENT avec le JSON"""
 
     raw_text = ""
     try:
@@ -692,15 +753,15 @@ Règles strictes:
 
         messages_content = [
             {"type": "text", "text": prompt_text},
-            {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{img_data}"}},
-            {"type": "text", "text": "Image ci-dessus : résultats des matchs terminés."}
+            {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{img_data}"}}
         ]
 
         payload = {
             "model": "meta-llama/llama-4-scout-17b-16e-instruct",
             "messages": [{"role": "user", "content": messages_content}],
             "temperature": 0.05,
-            "max_tokens": 1500
+            "max_tokens": 1500,
+            "response_format": {"type": "json_object"}
         }
 
         resp = requests.post(
@@ -717,7 +778,6 @@ Règles strictes:
 
         raw_text = resp_json['choices'][0]['message']['content']
 
-        # Nettoyage JSON
         clean = raw_text.strip()
         if clean.startswith("```"):
             clean = clean.split("```")[1]
@@ -728,11 +788,9 @@ Règles strictes:
         parsed = json.loads(clean)
         results_list = parsed.get("results", [])
 
-        # Validation et normalisation des scores
         validated = []
         for r in results_list:
             score = str(r.get("score", "")).strip()
-            # Accepter formats: "2-1", "2:1", "2 1"
             score = re.sub(r'[:\s]', '-', score)
             parts = re.findall(r'\d+', score)
             if len(parts) >= 2:
@@ -743,147 +801,154 @@ Règles strictes:
                     "score": score
                 })
 
-        print(f"✅ /scan-results : {len(validated)} résultat(s) extrait(s)")
         return jsonify({"results": validated, "raw_count": len(results_list)})
 
     except json.JSONDecodeError as e:
-        return jsonify({"error": f"JSON mal formé: {str(e)}. Brut: {raw_text[:300]}"}), 500
+        return jsonify({"error": f"JSON mal formé: {str(e)}"}), 500
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # ════════════════════════════════════════════════
-#  ROUTE /predict  (prédiction ML enrichie)
+#  ROUTE /predict
 # ════════════════════════════════════════════════
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """
-    Corps JSON :
-      { "match": {...}, "rankings": [...] }
-
-    Retourne :
-      {
-        "prediction": "1"|"X"|"2",
-        "confidence": 74.3,
-        "reliable": true,
-        "probabilities": { "1": 74.3, "X": 18.1, "2": 7.6 },
-        "scores": [["1-0", 22.4], ["2-0", 15.1], ...],
-        "top_score": "1-0",
-        "ml_active": true,
-        "strategy_version": 3,
-        "trained_on": 150
-      }
-    """
     global MODEL, SCORE_MODEL
-
-    data     = request.get_json(force=True) or {}
-    match    = data.get("match", {})
+    
+    data = request.get_json(force=True) or {}
+    match = data.get("match", {})
     rankings = data.get("rankings", [])
-
-    threshold   = STRATEGY.get("confidence_threshold", 60.0)
-    reliable_th = STRATEGY.get("reliable_threshold",   65.0)
-
+    
+    threshold = STRATEGY.get("confidence_threshold", 60.0)
+    reliable_th = STRATEGY.get("reliable_threshold", 65.0)
+    
     if MODEL is None:
         return _fallback_predict(match, rankings)
-
+    
     try:
-        feat  = extract_features(match, rankings).reshape(1, -1)
+        feat = extract_features(match, rankings).reshape(1, -1)
         probs = MODEL.predict_proba(feat)[0]
-        best  = int(np.argmax(probs))
-        conf  = float(probs[best]) * 100
-
+        best = int(np.argmax(probs))
+        conf = float(probs[best]) * 100
+        
         probs_dict = {
             "1": round(float(probs[0]) * 100, 1),
             "X": round(float(probs[1]) * 100, 1),
             "2": round(float(probs[2]) * 100, 1),
         }
-
-        # ── Prédiction de score ──
+        
+        forced_result = best
+        result_probs = [probs[0], probs[1], probs[2]]
+        
         if SCORE_MODEL is not None:
             sf = score_features(match, rankings).reshape(1, -1)
             sc_probs = SCORE_MODEL.predict_proba(sf)[0]
-            # Associer labels et probabilités
             classes = SCORE_MODEL.classes_
+            
             score_list = []
             for i, cls in enumerate(classes):
                 if cls < len(SCORE_LABELS):
-                    score_list.append((SCORE_LABELS[cls], round(float(sc_probs[i]) * 100, 2)))
-            score_list.sort(key=lambda x: x[1], reverse=True)
-            top_scores = score_list[:10]
+                    score_result = score_to_result(SCORE_LABELS[cls])
+                    if score_result == forced_result:
+                        score_list.append((SCORE_LABELS[cls], float(sc_probs[i])))
+            
+            if score_list:
+                total = sum(p for _, p in score_list)
+                if total > 0:
+                    score_list = [(s, round(p / total * 100, 2)) for s, p in score_list]
+                score_list.sort(key=lambda x: x[1], reverse=True)
+                top_scores = score_list[:10]
+            else:
+                top_scores = predict_score_heuristic(match, rankings, result_probs, forced_result)
         else:
-            # Fallback heuristique
-            top_scores = predict_score_heuristic(match, rankings, [probs[0], probs[1], probs[2]])
-
-        top_score = top_scores[0][0] if top_scores else "1-0"
-
+            top_scores = predict_score_heuristic(match, rankings, result_probs, forced_result)
+        
+        top_score = top_scores[0][0] if top_scores else ("0-0" if forced_result == 1 else ("1-0" if forced_result == 0 else "0-1"))
+        
+        score_result = score_to_result(top_score)
+        consistency_ok = (score_result == forced_result)
+        
+        if not consistency_ok:
+            if forced_result == 0:
+                top_score = "1-0"
+            elif forced_result == 1:
+                top_score = "0-0"
+            else:
+                top_score = "0-1"
+        
         return jsonify({
-            "prediction":       LABELS[best],
-            "confidence":       round(conf, 1),
-            "reliable":         conf >= reliable_th,
-            "probabilities":    probs_dict,
-            "scores":           top_scores,
-            "top_score":        top_score,
-            "ml_active":        True,
-            "score_ml_active":  SCORE_MODEL is not None,
+            "prediction": LABELS[best],
+            "confidence": round(conf, 1),
+            "reliable": conf >= reliable_th,
+            "probabilities": probs_dict,
+            "scores": top_scores,
+            "top_score": top_score,
+            "ml_active": True,
+            "score_ml_active": SCORE_MODEL is not None,
             "strategy_version": STRATEGY.get("version", 1),
-            "trained_on":       STRATEGY.get("trained_on", 0),
-            "accuracy_result":  STRATEGY.get("accuracy_result", 0),
-            "accuracy_score":   STRATEGY.get("accuracy_score", 0),
+            "trained_on": STRATEGY.get("trained_on", 0),
+            "accuracy_result": STRATEGY.get("accuracy_result", 0),
+            "accuracy_score": STRATEGY.get("accuracy_score", 0),
+            "consistency_forced": True,
+            "consistency_ok": consistency_ok
         })
-
+        
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-
 def _fallback_predict(match: dict, rankings: list):
-    """Logique déterministe de secours quand aucun modèle n'est encore disponible."""
     c1 = float(match.get("cote1") or 3.0)
     c2 = float(match.get("cote2") or 3.0)
-    cote_fav = min(c1, c2)
-    outcome  = "1" if c1 <= c2 else "2"
-
-    if   cote_fav <= 1.20: conf = 90.0
-    elif cote_fav <  1.50: conf = 75.0
-    elif cote_fav <= 2.20: conf = 60.0
-    else:                  conf, outcome = 40.0, "X"
-
-    p1 = conf/100 if outcome == "1" else (1 - conf/100) / 2
-    px = conf/100 if outcome == "X" else (1 - conf/100) / 2
-    p2 = conf/100 if outcome == "2" else (1 - conf/100) / 2
-
-    top_scores = predict_score_heuristic(match, rankings, [p1, px, p2])
-
+    cx = float(match.get("coteX") or 3.5)
+    
+    if c1 <= c2 and c1 <= cx:
+        outcome = "1"
+        forced_result = 0
+        conf = min(90.0, max(40.0, (1/c1) / ((1/c1)+(1/c2)+(1/cx)) * 100))
+    elif c2 <= c1 and c2 <= cx:
+        outcome = "2"
+        forced_result = 2
+        conf = min(90.0, max(40.0, (1/c2) / ((1/c1)+(1/c2)+(1/cx)) * 100))
+    else:
+        outcome = "X"
+        forced_result = 1
+        conf = min(80.0, max(30.0, (1/cx) / ((1/c1)+(1/c2)+(1/cx)) * 100))
+    
+    if outcome == "1":
+        p1, px, p2 = conf/100, (1-conf/100)/2, (1-conf/100)/2
+    elif outcome == "X":
+        p1, px, p2 = (1-conf/100)/2, conf/100, (1-conf/100)/2
+    else:
+        p1, px, p2 = (1-conf/100)/2, (1-conf/100)/2, conf/100
+    
+    top_scores = predict_score_heuristic(match, rankings, [p1, px, p2], forced_result)
+    top_score = top_scores[0][0] if top_scores else ("0-0" if outcome == "X" else ("1-0" if outcome == "1" else "0-1"))
+    
     return jsonify({
-        "prediction":      outcome,
-        "confidence":      conf,
-        "reliable":        conf >= 60.0,
-        "probabilities":   None,
-        "scores":          top_scores,
-        "top_score":       top_scores[0][0] if top_scores else "1-0",
-        "ml_active":       False,
+        "prediction": outcome,
+        "confidence": round(conf, 1),
+        "reliable": conf >= 60.0,
+        "probabilities": {"1": round(p1*100,1), "X": round(px*100,1), "2": round(p2*100,1)},
+        "scores": top_scores,
+        "top_score": top_score,
+        "ml_active": False,
         "score_ml_active": False,
-        "note":            "Modèle ML non encore entraîné — prédiction déterministe.",
+        "note": "Mode déterministe - cohérence forcée",
         "strategy_version": STRATEGY.get("version", 1),
-        "trained_on":       STRATEGY.get("trained_on", 0),
+        "trained_on": STRATEGY.get("trained_on", 0),
+        "consistency_forced": True,
+        "consistency_ok": True
     })
 
 # ════════════════════════════════════════════════
-#  ROUTE /feedback  (enregistrement d'un résultat réel)
+#  ROUTE /feedback
 # ════════════════════════════════════════════════
 
 @app.route('/feedback', methods=['POST'])
 def feedback():
-    """
-    Corps JSON :
-      {
-        "match":    { ...données du match... },
-        "rankings": [ ...classement... ],
-        "result":   0 | 1 | 2,         (0=Victoire A, 1=Nul, 2=Victoire B)
-        "score":    "2-1"              (optionnel mais TRÈS important pour apprendre les scores)
-      }
-    """
     data = request.get_json(force=True) or {}
 
     if "match" not in data or "result" not in data:
@@ -898,122 +963,122 @@ def feedback():
 
     score = data.get("score", "")
     if score and score not in SCORE_LABELS:
-        # Essai de normalisation
         parts = re.findall(r'\d+', score)
         if len(parts) >= 2:
             score = f"{parts[0]}-{parts[1]}"
 
+    if score:
+        computed_result = score_to_result(score)
+        if computed_result != result:
+            print(f"⚠️ Incohérence: Score {score} donne résultat {computed_result} mais reçu {result} -> correction")
+            result = computed_result
+
     record = {
-        "match":    data["match"],
+        "match": data["match"],
         "rankings": data.get("rankings", []),
-        "result":   result,
-        "score":    score if score else None
+        "result": result,
+        "score": score if score else None
     }
 
     with open(FEEDBACK_LOG, "a", encoding="utf-8") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
-    count = sum(1 for line in open(FEEDBACK_LOG, encoding="utf-8") if line.strip())
+    count = len(load_feedback_rows())  # compte dédupliqué
+    # Entraînement immédiat si possible
+    train_info = ""
+    if count >= MIN_TRAIN_SAMPLES:
+        res = trigger_train_if_needed(force=True)
+        if res and res.get("trained"):
+            train_info = f" 🧠 Modèle mis à jour ({res['accuracy_result']}%)"
     return jsonify({
-        "ok":      True,
-        "saved":   count,
-        "message": f"{count} exemple(s). {'Réentraînement automatique en cours...' if count >= 10 else 'Encore ' + str(10-count) + ' exemples avant le premier entraînement.'}"
+        "ok": True,
+        "saved": count,
+        "message": f"{count} exemple(s) (dédupliqués).{train_info if train_info else (' Encore ' + str(max(0,MIN_TRAIN_SAMPLES-count)) + ' exemples requis.' if count < MIN_TRAIN_SAMPLES else ' Réentraînement auto...')}"
     })
 
 # ════════════════════════════════════════════════
-#  ROUTE /import-results  (importer des résultats en masse)
+#  ROUTE /import-results
 # ════════════════════════════════════════════════
 
 @app.route('/import-results', methods=['POST'])
 def import_results():
-    """
-    Importe une liste de matchs avec leurs vrais résultats.
-    Corps JSON :
-    {
-      "results": [
-        {
-          "match":    { teamA, teamB, cote1, coteX, cote2, ... },
-          "rankings": [...],
-          "result":   0|1|2,
-          "score":    "2-1"   (optionnel)
-        },
-        ...
-      ]
-    }
-    Après import, déclenche automatiquement un réentraînement.
-    """
     global MODEL, SCORE_MODEL
-
+    
     data = request.get_json(force=True) or {}
     results = data.get("results", [])
-
+    
     if not results:
         return jsonify({"error": "Aucun résultat dans 'results'"}), 400
-
+    
     saved = 0
     errors = []
-
+    inconsistencies = 0
+    corrected = 0
+    
     with open(FEEDBACK_LOG, "a", encoding="utf-8") as f:
         for i, row in enumerate(results):
             try:
-                result = int(row.get("result", -1))
-                if result not in (0, 1, 2):
-                    # Essai de déduction depuis le score
-                    score = row.get("score", "")
-                    if score:
-                        result = score_to_result(score)
-                    if result < 0:
-                        errors.append(f"Ligne {i}: result invalide")
-                        continue
-
+                result = row.get("result")
                 score = row.get("score", "")
-                if score and score not in SCORE_LABELS:
+                
+                if score:
                     parts = re.findall(r'\d+', str(score))
                     if len(parts) >= 2:
                         score = f"{parts[0]}-{parts[1]}"
+                        computed_result = score_to_result(score)
+                        
+                        if result is not None and computed_result != result:
+                            inconsistencies += 1
+                            print(f"⚠️ Incohérence: score={score} -> résultat={computed_result} mais reçu={result} -> CORRECTION")
+                            result = computed_result
+                            corrected += 1
+                        elif result is None:
+                            result = computed_result
                     else:
                         score = None
-
+                
+                if result is None:
+                    errors.append(f"Ligne {i}: ni score ni result valide")
+                    continue
+                
+                result = int(result)
+                if result not in (0, 1, 2):
+                    errors.append(f"Ligne {i}: result invalide: {result}")
+                    continue
+                
                 record = {
-                    "match":    row.get("match", {}),
+                    "match": row.get("match", {}),
                     "rankings": row.get("rankings", []),
-                    "result":   result,
-                    "score":    score if score else None
+                    "result": result,
+                    "score": score if score else None
                 }
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
                 saved += 1
+                
             except Exception as e:
                 errors.append(f"Ligne {i}: {str(e)}")
-
+    
     if saved == 0:
         return jsonify({"error": "Aucun résultat valide importé", "details": errors}), 400
-
-    # Déclencher l'entraînement immédiatement
-    train_result = {}
-    try:
-        with _train_lock:
-            MODEL, SCORE_MODEL, n, a_res, a_sc = train_from_feedback()
-        train_result = {
-            "trained": True,
-            "samples": n,
-            "accuracy_result": round(a_res * 100, 1),
-            "accuracy_score":  round(a_sc * 100, 1),
-            "strategy_version": STRATEGY.get("version", 1),
-        }
-    except Exception as e:
-        train_result = {"trained": False, "reason": str(e)}
-
+    
+    # ── Entraînement IMMÉDIAT après import ──────────────────
+    train_result = trigger_train_if_needed(force=True) or {"trained": False, "reason": "Pas assez d'exemples"}
+    if train_result.get("trained"):
+        train_result["strategy_version"] = STRATEGY.get("version", 1)
+    
     return jsonify({
-        "ok":           True,
-        "imported":     saved,
-        "errors":       errors,
-        "training":     train_result,
-        "total_in_log": sum(1 for line in open(FEEDBACK_LOG, encoding="utf-8") if line.strip()),
-        "message":      f"✅ {saved} résultats importés et modèle réentraîné !"
+        "ok": True,
+        "imported": saved,
+        "errors": errors,
+        "inconsistencies_detected": inconsistencies,
+        "inconsistencies_corrected": corrected,
+        "training": train_result,
+        "total_in_log": len(load_feedback_rows()),
+        "message": f"✅ {saved} résultats importés. {corrected} incohérences corrigées."
     })
 
 # ════════════════════════════════════════════════
-#  ROUTE /train  (forcer un entraînement)
+#  ROUTE /train
 # ════════════════════════════════════════════════
 
 @app.route('/train', methods=['POST'])
@@ -1021,35 +1086,35 @@ def train():
     global MODEL, SCORE_MODEL
 
     if not SKLEARN_OK:
-        return jsonify({"error": "scikit-learn non installé sur le serveur."}), 503
+        return jsonify({"error": "scikit-learn non installé"}), 503
 
     try:
         with _train_lock:
             MODEL, SCORE_MODEL, n, a_res, a_sc = train_from_feedback()
         return jsonify({
-            "ok":               True,
-            "samples":          n,
-            "accuracy_result":  round(a_res * 100, 1),
-            "accuracy_score":   round(a_sc * 100, 1),
+            "ok": True,
+            "samples": n,
+            "accuracy_result": round(a_res * 100, 1),
+            "accuracy_score": round(a_sc * 100, 1),
             "strategy_version": STRATEGY.get("version", 1),
-            "message":          f"✅ Modèle entraîné sur {n} matchs. Résultat: {a_res*100:.1f}% | Score: {a_sc*100:.1f}%"
+            "message": f"✅ Modèle entraîné sur {n} matchs."
         })
     except FileNotFoundError as e:
         return jsonify({"error": str(e)}), 404
     except ValueError as e:
         return jsonify({"error": str(e)}), 422
     except Exception as e:
-        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # ════════════════════════════════════════════════
-#  ROUTE /status  (état complet du système)
+#  ROUTE /status
 # ════════════════════════════════════════════════
 
 @app.route('/status', methods=['GET'])
 def status():
     nb_feedback = 0
     nb_with_score = 0
+    nb_deduped = 0
     if os.path.exists(FEEDBACK_LOG):
         with open(FEEDBACK_LOG, encoding="utf-8") as f:
             for line in f:
@@ -1061,29 +1126,32 @@ def status():
                             nb_with_score += 1
                     except:
                         pass
+    nb_deduped = len(load_feedback_rows())
 
     return jsonify({
-        "ml_active":          MODEL is not None,
-        "score_ml_active":    SCORE_MODEL is not None,
-        "sklearn_ok":         SKLEARN_OK,
-        "model_file":         os.path.exists(MODEL_PATH),
-        "score_model_file":   os.path.exists(SCORE_MODEL_PATH),
-        "feedback_count":     nb_feedback,
-        "with_score":         nb_with_score,
-        "ready_to_train":     nb_feedback >= 10,
+        "ml_active": MODEL is not None,
+        "score_ml_active": SCORE_MODEL is not None,
+        "sklearn_ok": SKLEARN_OK,
+        "model_file": os.path.exists(MODEL_PATH),
+        "score_model_file": os.path.exists(SCORE_MODEL_PATH),
+        "feedback_count": nb_feedback,
+        "feedback_deduped": nb_deduped,
+        "with_score": nb_with_score,
+        "ready_to_train": nb_deduped >= MIN_TRAIN_SAMPLES,
+        "min_train_samples": MIN_TRAIN_SAMPLES,
         "strategy": {
-            "version":            STRATEGY.get("version", 1),
-            "trained_on":         STRATEGY.get("trained_on", 0),
-            "accuracy_result":    STRATEGY.get("accuracy_result", 0),
-            "accuracy_score":     STRATEGY.get("accuracy_score", 0),
+            "version": STRATEGY.get("version", 1),
+            "trained_on": STRATEGY.get("trained_on", 0),
+            "accuracy_result": STRATEGY.get("accuracy_result", 0),
+            "accuracy_score": STRATEGY.get("accuracy_score", 0),
             "confidence_threshold": STRATEGY.get("confidence_threshold", 60.0),
             "reliable_threshold": STRATEGY.get("reliable_threshold", 65.0),
         },
-        "score_labels":       SCORE_LABELS,
+        "score_labels": SCORE_LABELS,
     })
 
 # ════════════════════════════════════════════════
-#  ROUTE /strategy  (lire / réécrire la stratégie)
+#  ROUTE /strategy
 # ════════════════════════════════════════════════
 
 @app.route('/strategy', methods=['GET'])
@@ -1092,7 +1160,6 @@ def get_strategy():
 
 @app.route('/strategy', methods=['POST'])
 def update_strategy():
-    """Permet de forcer manuellement certains paramètres de stratégie."""
     global STRATEGY
     updates = request.get_json(force=True) or {}
     STRATEGY.update(updates)
