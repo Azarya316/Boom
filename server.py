@@ -25,10 +25,16 @@ except ImportError:
     print("⚠️  scikit-learn non installé — ML désactivé. Lancez : pip install scikit-learn joblib numpy")
 
 app = Flask(__name__, static_folder='.')
-CORS(app)
+CORS(app, origins=[
+    "https://boom-sandy-tau.vercel.app",
+    "http://localhost:5000",
+    "http://localhost:3000",
+    "*"
+])
 
 # ── Clé Groq ──
-GROQ_API_KEY = "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"
+#GROQ_API_KEY = "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"
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
 MODEL_PATH        = "model.pkl"
 SCORE_MODEL_PATH  = "score_model.pkl"
@@ -1171,11 +1177,12 @@ def update_strategy():
 # ════════════════════════════════════════════════
 
 if __name__ == '__main__':
-    print("✅ Serveur Safe Boom démarré → http://localhost:5000")
+    port = int(os.environ.get('PORT', 5000))
+    print(f"✅ Serveur Safe Boom démarré → http://localhost:{port}")
     print(f"   ML résultat actif  : {MODEL is not None}")
     print(f"   ML score actif     : {SCORE_MODEL is not None}")
     print(f"   sklearn dispo      : {SKLEARN_OK}")
     print(f"   Stratégie v{STRATEGY.get('version', 1)} — entraîné sur {STRATEGY.get('trained_on', 0)} matchs")
     print(f"   Accuracy résultat  : {STRATEGY.get('accuracy_result', 0)}%")
     print(f"   Accuracy score     : {STRATEGY.get('accuracy_score', 0)}%")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=False)

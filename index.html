@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Safe Boom — Analyseur</title>
+<script>
+  const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? ''
+  : 'https://VOTRE-APP.onrender.com';
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -1718,7 +1723,7 @@ async function runAutoGlobalScan() {
     const formData = new FormData();
     if (autoGlobalFiles.odds) formData.append('odds', autoGlobalFiles.odds);
     if (autoGlobalFiles.rank) formData.append('rank', autoGlobalFiles.rank);
-    const resp = await fetch('/scan', {
+    const resp = await fetch(API_BASE + '/scan', {
       method: 'POST',
       headers: { 'X-Gemini-Api-Key': window.GEMINI_API_KEY || '' },
       body: formData
@@ -2334,7 +2339,7 @@ async function analyzeCard(id) {
 
   let mlResult = null;
   try {
-    const resp = await fetch('/predict', {
+    const resp = await fetch(API_BASE + '/predict', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ match: matchData, rankings })
@@ -2628,7 +2633,7 @@ async function onGlobalResultsFile(input) {
   try {
     const formData = new FormData();
     formData.append('results_img', file);
-    const resp = await fetch('/scan-results', {
+    const resp = await fetch(API_BASE + '/scan-results', {
       method: 'POST',
       headers: { 'X-Gemini-Api-Key': window.GEMINI_API_KEY || '' },
       body: formData
@@ -2641,7 +2646,7 @@ async function onGlobalResultsFile(input) {
     statusEl.textContent = `✅ ${extracted.length} résultats extraits — Entraînement...`;
     const batch = await buildTrainingBatch(extracted);
     if (batch.length === 0) { statusEl.textContent = '⚠️ Aucune carte correspondante trouvée.'; statusEl.className = 'show error'; input.value = ''; return; }
-    const trainResp = await fetch('/import-results', {
+    const trainResp = await fetch(API_BASE + '/import-results', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ results: batch })
