@@ -2142,7 +2142,7 @@ async function _doManualTrain(id, goalsA, goalsB, statusEl) {
   }
 
   try {
-    const trainResp = await fetch('/import-results', {
+    const trainResp = await fetch(API_BASE + '/import-results', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -2536,7 +2536,7 @@ window.addEventListener('DOMContentLoaded', () => {
 ════════════════════════════════════════ */
 async function fetchMLStatus() {
   try {
-    const resp = await fetch('/status');
+    const resp = await fetch(API_BASE + '/status');
     if (!resp.ok) return;
     const d = await resp.json();
     const s = d.strategy || {};
